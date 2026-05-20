@@ -15,7 +15,7 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 - [Why I Built This](#why-i-built-this)
 - [Current Features](#current-features)
-- [Basic API](#basic-api)
+- [Public API](#public-api)
 - [OSI (Operating System Interface)](#osi-operating-system-interface)
 - [Current Limitations](#current-limitations)
 - [Official Planned Improvements](#official-planned-improvements)
@@ -58,9 +58,9 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 
 ---
 
-## Basic API
+## Public API
 
-The public API is intentionally small and subject to change.
+The public tinyrtos API is intentionally small and subject to change.
 
 ### Kernel
 
@@ -215,7 +215,7 @@ pio device monitor -b 115200
 
 You should see the OSI boot banner and be able to interact with the system through UART commands.
 
-You may also use my provided *run.sh* which will compile, flash, and open a monitor in one fell swoop. Sorry, I don't have the equivalent batch script for Windows yet. Add it yourself if you desire.
+You may also use my provided *run.sh* which will compile, flash, and open a monitor in one fell swoop. A Windows batch or PowerShell equivalent is not included yet, but contributions are welcome.
 
 ```bash
 cd tinyrtos
