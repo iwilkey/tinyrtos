@@ -15,6 +15,7 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 - [Why I Built This](#why-i-built-this)
 - [Current Features](#current-features)
+- [Basic API](#basic-api)
 - [OSI (Operating System Interface)](#osi-operating-system-interface)
 - [Current Limitations](#current-limitations)
 - [Official Planned Improvements](#official-planned-improvements)
@@ -29,15 +30,7 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 **tinyrtos** was built as a learning project to fully understand how a real-time operating system works internally on ARM Cortex-M hardware without relying on existing RTOS implementations such as FreeRTOS or Zephyr.
 
-The goal of this project was to implement the core concepts manually and understand the architecture from first principles, including:
-
-* exception-based context switching
-* task scheduling
-* PSP/MSP separation
-* synchronization primitives
-* ISR-to-task communication
-* blocking/wakeup mechanics
-* preemptive multitasking
+The goal of this project was to implement the core concepts manually and understand the architecture from first principles.
 
 This project intentionally stays very close to the hardware and avoids unnecessary abstraction layers.
 
@@ -45,7 +38,7 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 
 ## Current Features
 
-tinyrtos currently includes:
+**tinyrtos** currently includes:
 
 * Preemptive priority scheduler
 * PendSV context switching
@@ -65,9 +58,64 @@ tinyrtos currently includes:
 
 ---
 
+## Basic API
+
+The public API is intentionally small and subject to change.
+
+### Kernel
+
+```C
+void rtosk_kernel_systick_init(void);
+void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority);
+void rtosk_kernel_start(void);
+void rtosk_kernel_sleep_ms(uint32_t ms);
+void rtosk_kernel_yield(void);
+uint32_t rtosk_kernel_get_ticks(void);
+```
+
+### Synchronization
+
+```C
+void rtosk_semaphore_init(rtosk_semaphore_t * sem, uint32_t initial_count);
+void rtosk_semaphore_take(rtosk_semaphore_t * sem);
+void rtosk_semaphore_give(rtosk_semaphore_t * sem);
+void rtosk_semaphore_give_from_isr(rtosk_semaphore_t * sem);
+
+void rtosk_mutex_init(rtosk_mutex_t * mutex);
+void rtosk_mutex_lock(rtosk_mutex_t * mutex);
+void rtosk_mutex_unlock(rtosk_mutex_t * mutex);
+```
+
+### Queues
+
+```C
+void rtosk_queue_init(rtosk_queue_t * queue, void * buffer, uint32_t item_size, uint32_t capacity);
+uint32_t rtosk_queue_send(rtosk_queue_t * queue, const void * item);
+uint32_t rtosk_queue_send_from_isr(rtosk_queue_t * queue, const void * item);
+uint32_t rtosk_queue_receive(rtosk_queue_t * queue, void * item);
+```
+
+### Nucleo-F756ZG Board Support Package
+
+```C
+void rtosk_bsp_f756zg_on_board_led_init(void);
+void rtosk_bsp_f756zg_set_on_board_led(const bsp_led_t led, const uint8_t state);
+void rtosk_bsp_f756zg_toggle_on_board_led(const bsp_led_t led);
+
+void rtosk_bsp_f756zg_usart3_init(uint32_t baud);
+void rtosk_bsp_f756zg_usart3_write_char(char c);
+void rtosk_bsp_f756zg_usart3_write_string(const char *s);
+void rtosk_bsp_f756zg_uart_enable_rx_interrupt(void);
+void rtosk_bsp_f756zg_usart3_rx_callback_from_isr(uint8_t c);
+```
+
+Any API added or changed through contributions must be included/updated here.
+
+---
+
 ## OSI (Operating System Interface)
 
-tinyrtos includes a lightweight UART shell called the OSI.
+**tinyrtos** includes a lightweight UART shell called the OSI.
 
 The OSI allows interaction with the RTOS at runtime through a serial terminal.
 
@@ -86,7 +134,7 @@ The OSI is intended to become the primary diagnostics and debugging interface fo
 
 ## Current Limitations
 
-tinyrtos is intentionally small and educational in scope.
+**tinyrtos** is intentionally small and educational in scope.
 
 The kernel currently does NOT include:
 
