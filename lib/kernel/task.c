@@ -3,7 +3,7 @@
   * @file    task.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -57,6 +57,26 @@ static void rtosk_idle_task(void) {
  */
 static void rtosk_task_exit_trap(void) {
     for(;;) {}
+}
+
+/**
+ * TODO: Add docs
+ */
+static void rtosk_task_watermark_stack(rtosk_task_t * task) {
+    for(uint32_t i = 0UL; i < RTOSK_TASK_STACK_WORDS; i++) {
+        task->stack[i] = RTOSK_STACK_WATERMARK;
+    }
+}
+
+/**
+ * TODO: Add docs
+ */
+static uint32_t rtosk_task_get_stack_free_words(rtosk_task_t * task) {
+    uint32_t free_words = 0UL;
+    while(free_words < RTOSK_TASK_STACK_WORDS && task->stack[free_words] == RTOSK_STACK_WATERMARK) {
+        free_words++;
+    }
+    return free_words;
 }
 
 /**
@@ -120,14 +140,18 @@ static uint32_t * rtosk_task_build_stack(rtosk_task_t * task, rtosk_task_func_t 
 }
 
 void rtosk_task_init_idle(void) {
+    if(RTOSK_IDLE_READY) return;
     rtosk_task_t * task = &RTOSK_TASKS[RTOSK_IDLE_TASK_INDEX];
+    rtosk_task_watermark_stack(task);
     task->sp = rtosk_task_build_stack(task, rtosk_idle_task);
     task->state = RTOSK_TASK_IDLE;
     task->wake_tick = 0UL;
+    task->priority = 0UL;
+    task->name = "idle";
     RTOSK_IDLE_READY = 1UL;
 }
 
-void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority) {
+void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority, const char * name) {
     if(task_func == 0) {
         return;
     }
@@ -135,10 +159,12 @@ void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority) {
         return;
     }
     rtosk_task_t * task = &RTOSK_TASKS[RTOSK_TASK_COUNT];
+    rtosk_task_watermark_stack(task);
     task->sp = rtosk_task_build_stack(task, task_func);
     task->state = RTOSK_TASK_READY;
     task->wake_tick = 0UL;
     task->priority = priority;
+    task->name = name;
     RTOSK_TASK_COUNT++;
 }
 
@@ -221,3 +247,48 @@ rtosk_task_t * rtosk_task_get(uint32_t index) {
 uint32_t rtosk_task_is_idle_ready(void) {
     return RTOSK_IDLE_READY;
 }
+
+uint32_t rtosk_task_get_info(uint32_t index, rtosk_task_info_t * info) {
+    if(info == 0) {
+        return 0UL;
+    }
+    if(index >= RTOSK_TOTAL_TASK_SLOTS) {
+        return 0UL;
+    }
+    if(index >= RTOSK_TASK_COUNT && index != RTOSK_IDLE_TASK_INDEX) {
+        return 0UL;
+    }
+    if(index == RTOSK_IDLE_TASK_INDEX && RTOSK_IDLE_READY == 0UL) {
+        return 0UL;
+    }
+    rtosk_task_t * task = &RTOSK_TASKS[index];
+    uint32_t free_words = rtosk_task_get_stack_free_words(task);
+    info->index = index;
+    info->priority = task->priority;
+    info->state = task->state;
+    info->wake_tick = task->wake_tick;
+    info->stack_free_words = free_words;
+    info->stack_used_words = RTOSK_TASK_STACK_WORDS - free_words;
+    info->name = task->name;
+    return 1UL;
+}
+
+const char * rtosk_task_state_to_string(rtosk_task_state_t state) {
+    switch(state) {
+        case RTOSK_TASK_READY:
+            return "READY";
+        case RTOSK_TASK_BLOCKED:
+            return "SLEEP";
+        case RTOSK_TASK_BLOCKED_ON_SEMAPHORE:
+            return "SEM";
+        case RTOSK_TASK_BLOCKED_ON_QUEUE:
+            return "QUEUE";
+        case RTOSK_TASK_BLOCKED_ON_MUTEX:
+            return "MUTEX";
+        case RTOSK_TASK_IDLE:
+            return "IDLE";
+        default:
+            return "UNKNOWN";
+    }
+}
+

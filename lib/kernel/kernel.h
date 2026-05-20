@@ -3,7 +3,7 @@
   * @file    kernel.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -35,10 +35,21 @@
 #include <stdint.h>
 
 /**
+ * Current TinyRTOS version.
+ */
+#define RTOSK_KERNEL_VERSION "2026.5.20+1"
+
+/**
  * Function handle for a RTOSK task.
  * @author Ian Wilkey
  */
 typedef void (*rtosk_task_func_t)(void);
+
+/**
+ * Forward declaration of struct in task.h
+ * @author Ian Wilkey
+ */
+typedef struct rtosk_task_info rtosk_task_info_t;
 
 /**
  * Initializes the SYSTICK handler to properly sync the CORTEX-M's frequency to a deterministic
@@ -80,7 +91,12 @@ uint32_t rtosk_get_cpu_freq(void);
  * the function address to the PC.
  * @author Ian Wilkey
  */
-void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority);
+void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority, const char * name);
+
+/**
+ * TODO: Add docs
+ */
+uint32_t rtosk_kernel_get_task_info(uint32_t index, rtosk_task_info_t * info);
 
 /**
  * Called by a task to voluntarily give up it's current execution to allow other tasks to fire.

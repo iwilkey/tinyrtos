@@ -3,7 +3,7 @@
   * @file    task.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -56,6 +56,16 @@
 #define RTOSK_TOTAL_TASK_SLOTS (RTOSK_MAX_TASKS + 1UL)
 
 /**
+ * TODO: Add docs
+ */
+#define RTOSK_STACK_WATERMARK 0xDEADBEEFUL
+
+/**
+ * TODO: Add docs
+ */
+#define RTOSK_TASK_NAME_MAX   16UL
+
+/**
  * Current state of a RTOSK task.
  * @author Ian Wilkey
  */
@@ -67,6 +77,20 @@ typedef enum {
     RTOSK_TASK_BLOCKED_ON_MUTEX,
     RTOSK_TASK_IDLE
 } rtosk_task_state_t;
+
+/**
+ * TODO: Add docs
+ * @author Ian Wilkey
+ */
+struct rtosk_task_info {
+    uint32_t index;
+    uint32_t priority;
+    rtosk_task_state_t state;
+    uint32_t wake_tick;
+    uint32_t stack_used_words;
+    uint32_t stack_free_words;
+    const char * name;
+};
 
 /**
  * RTOSK task control block.
@@ -100,6 +124,11 @@ typedef struct {
      */
     uint32_t priority;
 
+    /**
+     * Name of the task.
+     */
+    const char * name;
+
 } rtosk_task_t;
 
 /**
@@ -107,7 +136,7 @@ typedef struct {
  * the function address to the PC.
  * @author Ian Wilkey
  */
-void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority);
+void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority, const char * name);
 
 /**
  * Initializes the IDLE task, used for when no executing task is ready to wake, or there are no user defined tasks.
@@ -197,5 +226,15 @@ rtosk_task_t * rtosk_task_get(uint32_t index);
  * Returns 1 if the IDLE task is ready.
  */
 uint32_t rtosk_task_is_idle_ready(void);
+
+/**
+ * TODO: Add docs
+ */
+uint32_t rtosk_task_get_info(uint32_t index, rtosk_task_info_t * info);
+
+/**
+ * TODO: Add docs
+ */
+const char * rtosk_task_state_to_string(rtosk_task_state_t state);
 
 #endif /// _RTOSK_TASK_H_

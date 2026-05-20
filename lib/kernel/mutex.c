@@ -3,7 +3,7 @@
   * @file    mutex.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *

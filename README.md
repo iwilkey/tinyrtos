@@ -54,6 +54,7 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 * Mutexes
 * ISR-safe synchronization APIs
 * UART shell / OSI (Operating System Interface)
+* Task stack watermarking and scheduler diagnostics (through OSI 'tasks' command)
 * STM32 board support package (BSP)
 
 ---
@@ -119,13 +120,16 @@ Any API added or changed through contributions must be included/updated here.
 
 The OSI allows interaction with the RTOS at runtime through a serial terminal.
 
-Example commands:
+Current commands:
 
 ```text
 help
 ticks
-red on
-red off
+tasks
+uptime
+freq
+about
+reboot
 ```
 
 The OSI is intended to become the primary diagnostics and debugging interface for the kernel.
@@ -169,11 +173,9 @@ Future planned improvements include:
 * Additional OSI commands
 * Fault diagnostics and crash reporting
 * HardFault register dump support
-* Stack watermark checking
 * Logging subsystem
 * Event flags / event groups
 * Improved scheduler diagnostics
-* Runtime task statistics
 * Better BSP abstraction
 * Additional board support
 

@@ -3,7 +3,7 @@
   * @file    kernel.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -104,8 +104,12 @@ uint32_t rtosk_get_cpu_freq(void) {
     return SystemCoreClock;
 }
 
-void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority) {
-    rtosk_task_create(task_func, priority);
+void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority, const char * name) {
+    rtosk_task_create(task_func, priority, name);
+}
+
+uint32_t rtosk_kernel_get_task_info(uint32_t index, rtosk_task_info_t * info) {
+    return rtosk_task_get_info(index, info);
 }
 
 void rtosk_kernel_yield(void) {

@@ -3,7 +3,7 @@
   * @file    main.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -65,8 +65,8 @@ int main(void) {
     rtosk_osi_init(115200UL, 3UL);
     rtosk_kernel_systick_init();
     /// NOTE: higher-priority tasks that never yield will cause CPU starvation.
-    rtosk_kernel_create_task(led0_task, 2UL);
-    rtosk_kernel_create_task(led1_task, 1UL);
+    rtosk_kernel_create_task(led0_task, 2UL, "led0");
+    rtosk_kernel_create_task(led1_task, 1UL, "led1");
     rtosk_kernel_start();
     for(;;) {}
     return 0;

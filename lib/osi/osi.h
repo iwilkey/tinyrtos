@@ -3,7 +3,7 @@
   * @file    osi.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C on STM32.
+  *          written from scratch in C.
   ******************************************************************************
   * @attention
   *
@@ -39,13 +39,42 @@
 #include "queue.h"
 #include "mutex.h"
 
-#include "f756zg/led.h"
 #include "f756zg/usart3.h"
 
 /**
  * The maximum amount of data reserved for incoming OSI commands.
  */
 #define RTOSK_OSI_CMD_BUFFER_SIZE 128UL
+
+/**
+ * All possible OSI commands (at this time)
+ * @author Ian Wilkey
+ */
+typedef enum {
+    OSI_CMD_UNKNOWN = 0UL,
+    OSI_CMD_HELP,
+    OSI_CMD_TASKS,
+    OSI_CMD_TICKS,
+    OSI_CMD_UPTIME,
+    OSI_CMD_FREQ,
+    OSI_CMD_ABOUT,
+    OSI_CMD_REBOOT,
+    OSI_CMD_COUNT
+} osi_cmd_t;
+
+/**
+ * Mapped command literals.
+ */
+static const char * const OSI_COMMAND_LITERALS[OSI_CMD_COUNT] = {
+  "unknown",
+  "help",
+  "tasks",
+  "ticks",
+  "uptime",
+  "freq",
+  "about",
+  "reboot"
+};
 
 /**
  * Initializes RTOSK's tiny Operating System Interface (OSI) at given baud and task priority.
