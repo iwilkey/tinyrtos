@@ -12,7 +12,11 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 ---
 
+## Demo
+
 ![TinyRTOS OSI Demo](assets/tinyrtos_osi_demo.gif)
+
+Above is a demonstration of TinyRTOS running on an STM32 Nucleo-F756ZG, rendering and dispatching all currently supported OSI commands over USART3 as of version 2026.5.21+2.
 
 ---
 
