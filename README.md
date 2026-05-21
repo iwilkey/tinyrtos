@@ -68,7 +68,9 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 #### Since
 
 * Since 2026.5.21+1: Task stack watermarking and scheduler diagnostics (through OSI 'tasks' command)
-* Since 2026.5.21+2: HardFault register dump support
+* Since 2026.5.21+2: HardFault register dump support (see dump below)
+
+![TinyRTOS HardFault Handler](assets/tinyrtos_hardfault_demo.png)
 
 ---
 
