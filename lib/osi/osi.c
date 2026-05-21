@@ -156,6 +156,10 @@ static void osi_invoke(osi_cmd_t cmd, const char * cmd_literal) {
                 "License : MIT\r\n"
             );
             break;
+        case OSI_CMD_FAULT:
+            rtosk_osi_usart3_write_locked("\rtriggering HardFault...");
+            __asm volatile ("udf #0");
+            break;
         case OSI_CMD_REBOOT:
             rtosk_osi_usart3_write_locked("\rrebooting...\r\n");
             rtosk_kernel_delay_ms(250);

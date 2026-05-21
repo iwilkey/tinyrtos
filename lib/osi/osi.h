@@ -58,6 +58,7 @@ typedef enum {
     OSI_CMD_UPTIME,
     OSI_CMD_FREQ,
     OSI_CMD_ABOUT,
+    OSI_CMD_FAULT,
     OSI_CMD_REBOOT,
     OSI_CMD_COUNT
 } osi_cmd_t;
@@ -73,6 +74,7 @@ static const char * const OSI_COMMAND_LITERALS[OSI_CMD_COUNT] = {
   "uptime",
   "freq",
   "about",
+  "fault",
   "reboot"
 };
 

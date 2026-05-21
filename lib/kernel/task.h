@@ -56,12 +56,13 @@
 #define RTOSK_TOTAL_TASK_SLOTS (RTOSK_MAX_TASKS + 1UL)
 
 /**
- * TODO: Add docs
+ * A known stack value used when deciphering how much stack has been allocated over all-time. I'm using
+ * the famous DEADBEEF for value dumps later.
  */
 #define RTOSK_STACK_WATERMARK 0xDEADBEEFUL
 
 /**
- * TODO: Add docs
+ * The maximum length of a TinyRTOS task name.
  */
 #define RTOSK_TASK_NAME_MAX   16UL
 
@@ -79,17 +80,47 @@ typedef enum {
 } rtosk_task_state_t;
 
 /**
- * TODO: Add docs
+ * RTOSK task information.
  * @author Ian Wilkey
  */
 struct rtosk_task_info {
+
+    /**
+     * the index of this task inside of the TCB array.
+     */
     uint32_t index;
+
+    /**
+     * the configured static priority of the task.
+     */
     uint32_t priority;
+
+    /**
+     * the current state of the task to the scheduler.
+     */
     rtosk_task_state_t state;
+
+    /**
+     * the wake tick of the task, if blocked.
+     */
     uint32_t wake_tick;
+
+    /**
+     * the highest amount of stack used by the task during the runtime.
+     */
     uint32_t stack_used_words;
+
+    /**
+     * the remaining stack of the task, relative to the highest stack usage of the task during the
+     * runtime.
+     */
     uint32_t stack_free_words;
+
+    /**
+     * the name of the task.
+     */
     const char * name;
+
 };
 
 /**
@@ -224,16 +255,19 @@ rtosk_task_t * rtosk_task_get(uint32_t index);
 
 /**
  * Returns 1 if the IDLE task is ready.
+ * @author Ian Wilkey
  */
 uint32_t rtosk_task_is_idle_ready(void);
 
 /**
- * TODO: Add docs
+ * Retrieves diagnostic information for the task at the given index.
+ * @author Ian Wilkey
  */
 uint32_t rtosk_task_get_info(uint32_t index, rtosk_task_info_t * info);
 
 /**
- * TODO: Add docs
+ * Converts a task state enum into a readable string.
+ * @author Ian Wilkey
  */
 const char * rtosk_task_state_to_string(rtosk_task_state_t state);
 

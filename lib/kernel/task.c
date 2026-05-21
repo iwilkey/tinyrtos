@@ -60,7 +60,9 @@ static void rtosk_task_exit_trap(void) {
 }
 
 /**
- * TODO: Add docs
+ * Fills a task stack with a known pattern (DEADBEEF!) so unused stack space can be
+ * measured later.
+ * @author Ian Wilkey
  */
 static void rtosk_task_watermark_stack(rtosk_task_t * task) {
     for(uint32_t i = 0UL; i < RTOSK_TASK_STACK_WORDS; i++) {
@@ -69,7 +71,8 @@ static void rtosk_task_watermark_stack(rtosk_task_t * task) {
 }
 
 /**
- * TODO: Add docs
+ * Counts how many stack works still contain DEADBEEF.
+ * @author Ian Wilkey
  */
 static uint32_t rtosk_task_get_stack_free_words(rtosk_task_t * task) {
     uint32_t free_words = 0UL;

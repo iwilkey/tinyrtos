@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    port.h
+  * @file    fault.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,71 +29,15 @@
   ******************************************************************************
   */
 
-#ifndef _RTOSK_PORT_H_
-#define _RTOSK_PORT_H_
+#ifndef _RTOSK_FAULT_H_
+#define _RTOSK_FAULT_H_
 
 #include <stdint.h>
 
 /**
- * Thumb bit for stack frame.
- */
-#define RTOSK_XPSR_T_BIT 0x01000000UL
-
-/**
- * Code to return to Thread mode, use PSP, and restore registers
- * from the PSP stack frame.
- */
-#define RTOSK_EXC_RETURN_PSP 0xFFFFFFFDUL
-
-/**
- * aligns the given stack pointer to an 8-byte boundary which Cortex-M expects for
- * exception return.
+ * Handles a HardFault by dumping the stacked CPU registers and fault status registers, then halts the system.
  * @author Ian Wilkey
  */
-uint32_t * rtosk_port_align_stack_pointer(uint32_t * sp);
+__attribute__((noreturn)) void rtosk_fault_hardfault_handler(uint32_t * stacked_registers, uint32_t exc_return);
 
-/**
- * Triggers a software interrupt to call SVC handler to load in and use
- * the stack frame of the first task.
- * @author Ian Wilkey
- */
-void rtosk_port_start_first_task(void);
-
-/**
- * Calls PendSV to save the state of the current executing task and call the scheduler to figure out what
- * task needs to be executed next (if none, IDLE.)
- * @author Ian Wilkey
- */
-void rtosk_port_yield(void);
-
-/**
- * Saves the current interrupt enable state and disables interrupts.
- * @author Ian Wilkey
- */
-uint32_t rtosk_port_irq_save(void);
-
-/**
- * Restores interrupts to a previously saved state.
- * @author Ian Wilkey
- */
-void rtosk_port_irq_restore(uint32_t primask);
-
-/**
- * Sets kernel exception priorities for SysTick and PendSV.
- * @author Ian Wilkey
- */
-void rtosk_port_configure_exceptions(void);
-
-/**
- * Configures what additional behaviors trigger a TinyRTOS HardFault.
- * @author Ian Wilkey
- */
-void rtosk_port_configure_faults(void);
-
-/**
- * Called every configured SysTick interrupt.
- * @author Ian Wilkey
- */
-void rtosk_kernel_tick(void);
-
-#endif /// _RTOSK_PORT_H_
+#endif

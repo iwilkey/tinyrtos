@@ -2,11 +2,12 @@
 
 A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely from scratch in C.
 
-* Author: Ian Wilkey
+* Initial Author: Ian Wilkey
 * Start Date: May 19th, 2026
+* Latest version: 2026.5.21+2
 * License: MIT
 * Target MCU: STM32F756ZG (ARM Cortex-M7)
-* Toolchain: PlatformIO + GCC ARM
+* Toolchain: GCC ARM (supported by PlatformIO)
 * **Approximate footprint: ~6 KB RAM, ~6 KB Flash**
 
 ---
@@ -14,7 +15,7 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 ## Table of Contents
 
 - [Why I Built This](#why-i-built-this)
-- [Current Features](#current-features)
+- [Features](#features)
 - [Public API](#public-api)
 - [OSI (Operating System Interface)](#osi-operating-system-interface)
 - [Current Limitations](#current-limitations)
@@ -36,7 +37,7 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 
 ---
 
-## Current Features
+## Features
 
 **tinyrtos** currently includes:
 
@@ -54,8 +55,12 @@ This project intentionally stays very close to the hardware and avoids unnecessa
 * Mutexes
 * ISR-safe synchronization APIs
 * UART shell / OSI (Operating System Interface)
-* Task stack watermarking and scheduler diagnostics (through OSI 'tasks' command)
 * STM32 board support package (BSP)
+
+#### Since
+
+* Since 2026.5.21+1: Task stack watermarking and scheduler diagnostics (through OSI 'tasks' command)
+* Since 2026.5.21+2: HardFault register dump support
 
 ---
 
@@ -67,7 +72,7 @@ The public tinyrtos API is intentionally small and subject to change.
 
 ```C
 void rtosk_kernel_systick_init(void);
-void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority);
+void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority, const char * name);
 void rtosk_kernel_start(void);
 void rtosk_kernel_sleep_ms(uint32_t ms);
 void rtosk_kernel_yield(void);
@@ -125,11 +130,12 @@ Current commands:
 ```text
 help
 ticks
-tasks
-uptime
-freq
-about
-reboot
+tasks  (since 2026.5.21+1)
+uptime (since 2026.5.21+1)
+freq   (since 2026.5.21+1)
+about  (since 2026.5.21+1)
+fault  (since 2026.5.21+2)
+reboot (since 2026.5.21+1)
 ```
 
 The OSI is intended to become the primary diagnostics and debugging interface for the kernel.
@@ -171,8 +177,6 @@ As it currently stands, tinyrtos is functional enough to support real embedded f
 Future planned improvements include:
 
 * Additional OSI commands
-* Fault diagnostics and crash reporting
-* HardFault register dump support
 * Logging subsystem
 * Event flags / event groups
 * Improved scheduler diagnostics

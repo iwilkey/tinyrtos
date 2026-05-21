@@ -77,6 +77,7 @@ void rtosk_kernel_start(void) {
     if(rtosk_task_get_count() == 0UL) {
         while(1) {}
     }
+    rtosk_port_configure_faults();
     rtosk_task_init_idle();
     RTOSK_KERNEL_INIT = 1U;
     rtosk_port_start_first_task();

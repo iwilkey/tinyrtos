@@ -37,7 +37,7 @@
 /**
  * Current TinyRTOS version.
  */
-#define RTOSK_KERNEL_VERSION "2026.5.20+1"
+#define RTOSK_KERNEL_VERSION "2026.5.21+2"
 
 /**
  * Function handle for a RTOSK task.
@@ -94,7 +94,8 @@ uint32_t rtosk_get_cpu_freq(void);
 void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority, const char * name);
 
 /**
- * TODO: Add docs
+ * Retrieves runtime diagnostic information for a task.
+ * @author Ian Wilkey
  */
 uint32_t rtosk_kernel_get_task_info(uint32_t index, rtosk_task_info_t * info);
 

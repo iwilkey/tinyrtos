@@ -38,6 +38,12 @@
 #include "f756zg/led.h"
 
 /**
+ * If non-zero, the system will try to deref a null pointer in TASK0 to show how TinyRTOS handles a
+ * HardFault.
+ */
+#define SIMULATE_HARD_FAULT 0U
+
+/**
  * Synced task to toggle the on-board GREEN LED every second.
  * @author Ian Wilkey
  */
@@ -45,6 +51,9 @@ static void led0_task(void) {
     while(1) {
         rtosk_bsp_f756zg_toggle_on_board_led(LED_0);
         rtosk_kernel_sleep_ms(1000UL);
+        if(SIMULATE_HARD_FAULT) {
+            *(volatile uint32_t *)0x00000000UL = 1234UL;
+        }
     }
 }
 

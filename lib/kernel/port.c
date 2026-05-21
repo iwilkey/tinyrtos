@@ -32,6 +32,8 @@
 #include "port.h"
 #include "task.h"
 #include "scheduler.h"
+#include "fault.h"
+
 #include "stm32f7xx.h"
 
 uint32_t * rtosk_port_align_stack_pointer(uint32_t *sp) {
@@ -42,6 +44,11 @@ void SysTick_Handler(void) {
     rtosk_kernel_tick();
 }
 
+/**
+ * Starts the first scheduled task by restoring its stack frame and returning from
+ * SVC into Thread mode using PSP.
+ * @author Ian Wilkey
+ */
 __attribute__((naked)) void SVC_Handler(void) {
     __asm volatile (
         /* load and call the address of the C function that returns the current task's saved SP */
@@ -66,6 +73,11 @@ __attribute__((naked)) void SVC_Handler(void) {
     );
 }
 
+/**
+ * Performs a PendSV context switch by saving the current task state, selecting the next task,
+ * and restoring its saved stack pointer.
+ * @author Ian Wilkey
+ */
 __attribute__((naked)) void PendSV_Handler(void) {
     __asm volatile (
         /* read the current Process Stack Pointer; this points to the hardware-saved frame */
@@ -94,6 +106,28 @@ __attribute__((naked)) void PendSV_Handler(void) {
     );
 }
 
+/**
+ * Captures the active stack pointer on HardFault entry and forwards the stacked
+ * CPU frame to the fault dump handler.
+ * @author Ian Wilkey
+ */
+__attribute__((naked)) void HardFault_Handler(void) {
+    __asm volatile (
+        /* test EXC_RETURN bit 2 to determine which stack pointer was active */
+        "tst lr, #4      \n"
+        /* if bit 2 is clear, the fault used MSP; otherwise it used PSP */
+        "ite eq          \n"
+        /* move MSP into r0 when the fault frame is on the main stack */
+        "mrseq r0, msp   \n"
+        /* move PSP into r0 when the fault frame is on the process stack */
+        "mrsne r0, psp   \n"
+        /* pass EXC_RETURN as the second argument */
+        "mov r1, lr      \n"
+        /* branch to the C fault handler; r0 = stacked registers, r1 = EXC_RETURN */
+        "b rtosk_fault_hardfault_handler \n"
+    );
+}
+
 void rtosk_port_yield(void) {
     SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
     __DSB();
@@ -119,6 +153,13 @@ void rtosk_port_configure_exceptions(void) {
     NVIC_SetPriority(PendSV_IRQn, 0xFFU);
     /// SysTick should be able to request a context switch but PendSV should run only after higher-priority interrupt work finishes
     NVIC_SetPriority(SysTick_IRQn, 0xFEU);
+}
+
+void rtosk_port_configure_faults(void) {
+    /// trigger div by zero trapping
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+    /// trigger unaligned access trapping
+    SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
 }
 
 void rtosk_port_start_first_task(void) {
