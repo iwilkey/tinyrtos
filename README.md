@@ -12,6 +12,10 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 ---
 
+![TinyRTOS OSI Demo](assets/tinyrtos_osi_demo.gif)
+
+---
+
 ## Table of Contents
 
 - [Why I Built This](#why-i-built-this)
