@@ -4,7 +4,7 @@ A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely 
 
 * Initial Author: Ian Wilkey
 * Start Date: May 19th, 2026
-* Latest version: 2026.5.21+2
+* Latest version: 2026.5.22+3
 * License: MIT
 * Target MCU: STM32F756ZG (ARM Cortex-M7)
 * Toolchain: GCC ARM (supported by PlatformIO)

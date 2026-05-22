@@ -29,9 +29,10 @@
   ******************************************************************************
   */
 
-#include "osi.h"
-#include "task.h"
-#include "stm32f7xx.h"
+#include <tinyrtos/osi/osi.h>
+#include <tinyrtos/kernel/task.h>
+
+#include <stm32f7xx.h>
 
 /**
  * Whether or not the RTOSK OSI has been initialized this runtime.

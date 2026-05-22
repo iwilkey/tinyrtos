@@ -29,8 +29,8 @@
   ******************************************************************************
   */
 
-#include "task.h"
-#include "port.h"
+#include <tinyrtos/kernel/task.h>
+#include <tinyrtos/kernel/port.h>
 
 /**
  * All RTOSK tasks, including idle task.

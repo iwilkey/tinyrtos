@@ -33,7 +33,7 @@
 #define _RTOSK_TASK_H_
 
 #include <stdint.h>
-#include "kernel.h"
+#include <tinyrtos/kernel/kernel.h>
 
 /**
  * The depth, in words, of a task's stack.

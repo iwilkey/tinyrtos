@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    led.h
+  * @file    mutex.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,50 +29,56 @@
   ******************************************************************************
   */
 
-#ifndef _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_
-#define _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_
+#include <tinyrtos/kernel/mutex.h>
+#include <tinyrtos/kernel/kernel.h>
+#include <tinyrtos/kernel/task.h>
 
-#include <stdint.h>
-#include "stm32f7xx.h"
+void rtosk_mutex_init(rtosk_mutex_t * mutex) {
+    if(mutex == 0) {
+        return;
+    }
+    mutex->owner = RTOSK_MUTEX_NO_OWNER;
+    mutex->waiting_task = RTOSK_MUTEX_NO_WAITER;
+}
 
-/**
- * This file strictly concerns GPIO on Nucleo-F756ZG's PORT B, where the on-board
- * LEDs are located.
- */
-#define BSP_PORT_B GPIOB
+void rtosk_mutex_lock(rtosk_mutex_t * mutex) {
+    if(mutex == 0) {
+        return;
+    }
+    for(;;) {
+        rtosk_kernel_enter_critical();
+        uint32_t current = rtosk_task_get_current_index();
+        if(mutex->owner == RTOSK_MUTEX_NO_OWNER) {
+            mutex->owner = current;
+            rtosk_kernel_exit_critical();
+            return;
+        }
+        if(mutex->owner == current) {
+            rtosk_kernel_exit_critical();
+            return;
+        }
+        mutex->waiting_task = current;
+        rtosk_task_block_current_on_mutex();
+        rtosk_kernel_exit_critical();
+        rtosk_kernel_yield();
+    }
+}
 
-/**
- * All possible on-board LEDs on the Nucleo-F756ZG.
- * 
- * LED 0 = GREEN
- * 
- * LED 1 = BLUE
- * 
- * LED 2 = RED
- * @author Ian Wilkey
- */
-typedef enum {
-    LED_0 = 0UL,
-    LED_1,
-    LED_2
-} bsp_led_t;
-
-/**
- * Initializes the on-board LEDs for the Nucleo-F756ZG.
- * @author Ian Wilkey
- */
-void rtosk_bsp_f756zg_on_board_led_init(void);
-
-/**
- * Sets the state of some F756ZG on-board LED to the given state, which should be one of 0U or 1U.
- * @author Ian Wilkey
- */
-void rtosk_bsp_f756zg_set_on_board_led(const bsp_led_t led, const uint8_t state);
-
-/**
- * Toggles the current state of some F756ZG on-board LED.
- * @author Ian Wilkey
- */
-void rtosk_bsp_f756zg_toggle_on_board_led(const bsp_led_t led);
-
-#endif /// _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_
+void rtosk_mutex_unlock(rtosk_mutex_t * mutex) {
+    if(mutex == 0) {
+        return;
+    }
+    rtosk_kernel_enter_critical();
+    uint32_t current = rtosk_task_get_current_index();
+    if(mutex->owner != current) {
+        rtosk_kernel_exit_critical();
+        return;
+    }
+    mutex->owner = RTOSK_MUTEX_NO_OWNER;
+    if(mutex->waiting_task != RTOSK_MUTEX_NO_WAITER) {
+        rtosk_task_set_ready(mutex->waiting_task);
+        mutex->waiting_task = RTOSK_MUTEX_NO_WAITER;
+    }
+    rtosk_kernel_exit_critical();
+    rtosk_kernel_yield();
+}

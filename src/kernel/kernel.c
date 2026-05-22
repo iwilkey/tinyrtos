@@ -29,10 +29,11 @@
   ******************************************************************************
   */
 
-#include "kernel.h"
-#include "task.h"
-#include "port.h"
-#include "stm32f7xx.h"
+#include <tinyrtos/kernel/kernel.h>
+#include <tinyrtos/kernel/task.h>
+#include <tinyrtos/kernel/port.h>
+
+#include <stm32f7xx.h>
 
 /**
  * Current systicks since boot.

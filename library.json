@@ -1,0 +1,55 @@
+{
+  "name": "tinyrtos",
+  "version": "2026.5.22+3",
+  "description": "A compact, preemptive priority RTOS kernel for ARM Cortex-M currently targeting stm32f7xx boards.",
+  "keywords": [
+    "rtos",
+    "arm",
+    "cortex-m",
+    "stm32",
+    "embedded",
+    "scheduler",
+    "kernel"
+  ],
+  "authors": [
+    {
+      "name": "Ian Wilkey",
+      "url": "https://github.com/iwilkey"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/iwilkey/tinyrtos",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iwilkey/tinyrtos.git"
+  },
+  "frameworks": "cmsis",
+  "platforms": "ststm32",
+  "headers": [
+    "tinyrtos/kernel/fault.h",
+    "tinyrtos/kernel/kernel.h",
+    "tinyrtos/kernel/mutex.h",
+    "tinyrtos/kernel/port.h",
+    "tinyrtos/kernel/queue.h",
+    "tinyrtos/kernel/scheduler.h",
+    "tinyrtos/kernel/semaphore.h",
+    "tinyrtos/kernel/task.h",
+    "tinyrtos/osi/osi.h",
+    "tinyrtos/bsp/f756zg/led.h",
+    "tinyrtos/bsp/f756zg/usart3.h"
+  ],
+  "build": {
+    "srcDir": "src",
+    "includeDir": "include"
+  },
+  "examples": [
+    {
+      "name": "Nucleo-F756ZG OSI Demo",
+      "base": "examples/nucleo_f756zg_osi",
+      "files": [
+        "platformio.ini",
+        "src/main.c"
+      ]
+    }
+  ]
+}

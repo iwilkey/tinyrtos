@@ -29,10 +29,10 @@
   ******************************************************************************
   */
 
-#include "queue.h"
-#include "kernel.h"
-#include "task.h"
-#include "port.h"
+#include <tinyrtos/kernel/queue.h>
+#include <tinyrtos/kernel/kernel.h>
+#include <tinyrtos/kernel/task.h>
+#include <tinyrtos/kernel/port.h>
 
 static void rtosk_queue_copy(uint8_t * dst, const uint8_t * src, uint32_t size) {
     for(uint32_t i = 0UL; i < size; i++) {

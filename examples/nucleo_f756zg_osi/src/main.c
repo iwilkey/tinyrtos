@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    semaphore.c
+  * @file    main.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,59 +29,53 @@
   ******************************************************************************
   */
 
-#include "semaphore.h"
-#include "kernel.h"
-#include "task.h"
-#include "port.h"
+#include <stdio.h>
+#include <string.h>
 
-void rtosk_semaphore_init(rtosk_semaphore_t * sem, uint32_t initial_count) {
-    if(sem == 0) {
-        return;
+#include <tinyrtos/kernel/kernel.h>
+#include <tinyrtos/osi/osi.h>
+#include <tinyrtos/bsp/f756zg/led.h>
+
+/**
+ * If non-zero, the system will try to deref a null pointer in TASK0 to show how TinyRTOS handles a
+ * HardFault.
+ */
+#define SIMULATE_HARD_FAULT 0U
+
+/**
+ * Synced task to toggle the on-board GREEN LED every second.
+ * @author Ian Wilkey
+ */
+static void led0_task(void) {
+    while(1) {
+        rtosk_bsp_f756zg_toggle_on_board_led(LED_0);
+        rtosk_kernel_sleep_ms(1000UL);
+        if(SIMULATE_HARD_FAULT) {
+            *(volatile uint32_t *)0x00000000UL = 1234UL;
+        }
     }
-    sem->count = initial_count;
-    sem->waiting_task = RTOSK_SEMAPHORE_NO_WAITER;
 }
 
-void rtosk_semaphore_take(rtosk_semaphore_t * sem) {
-    if(sem == 0) {
-        return;
+/**
+ * Purposefuly non-yeilding task to prove preemption works. Toggles on-board BLUE LED.
+ * @author Ian Wilkey
+ */
+static void led1_task(void) {
+    while(1) {
+        rtosk_bsp_f756zg_toggle_on_board_led(LED_1);
+        /// never yields; if task0 still runs this prove preemption works as designed.
+        for(volatile uint32_t i = 0UL; i < 3000000UL; i++) {}
     }
-    rtosk_kernel_enter_critical();
-    if(sem->count > 0UL) {
-        sem->count--;
-        rtosk_kernel_exit_critical();
-        return;
-    }
-    sem->waiting_task = rtosk_task_get_current_index();
-    rtosk_task_block_current_on_semaphore();
-    rtosk_kernel_exit_critical();
-    rtosk_kernel_yield();
 }
 
-void rtosk_semaphore_give(rtosk_semaphore_t * sem) {
-    if(sem == 0) {
-        return;
-    }
-    rtosk_kernel_enter_critical();
-    if(sem->waiting_task != RTOSK_SEMAPHORE_NO_WAITER) {
-        rtosk_task_set_ready(sem->waiting_task);
-        sem->waiting_task = RTOSK_SEMAPHORE_NO_WAITER;
-    } else {
-        sem->count = 1UL;
-    }
-    rtosk_kernel_exit_critical();
-    rtosk_kernel_yield();
-}
-
-void rtosk_semaphore_give_from_isr(rtosk_semaphore_t * sem) {
-    if(sem == 0) {
-        return;
-    }
-    if(sem->waiting_task != RTOSK_SEMAPHORE_NO_WAITER) {
-        rtosk_task_set_ready(sem->waiting_task);
-        sem->waiting_task = RTOSK_SEMAPHORE_NO_WAITER;
-        rtosk_port_yield();
-    } else {
-        sem->count = 1UL;
-    }
+int main(void) {
+    rtosk_bsp_f756zg_on_board_led_init();
+    rtosk_osi_init(115200UL, 3UL);
+    rtosk_kernel_systick_init();
+    /// NOTE: higher-priority tasks that never yield will cause CPU starvation.
+    rtosk_kernel_create_task(led0_task, 2UL, "led0");
+    rtosk_kernel_create_task(led1_task, 1UL, "led1");
+    rtosk_kernel_start();
+    for(;;) {}
+    return 0;
 }

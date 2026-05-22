@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    osi.h
+  * @file    led.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,59 +29,50 @@
   ******************************************************************************
   */
 
-#ifndef _RTOSK_OSI_H_
-#define _RTOSK_OSI_H_
+#ifndef _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_
+#define _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_
 
-#include <stdio.h>
-#include <string.h>
-
-#include "kernel.h"
-#include "queue.h"
-#include "mutex.h"
-
-#include "f756zg/usart3.h"
+#include <stdint.h>
+#include <stm32f7xx.h>
 
 /**
- * The maximum amount of data reserved for incoming OSI commands.
+ * This file strictly concerns GPIO on Nucleo-F756ZG's PORT B, where the on-board
+ * LEDs are located.
  */
-#define RTOSK_OSI_CMD_BUFFER_SIZE 128UL
+#define BSP_PORT_B GPIOB
 
 /**
- * All possible OSI commands (at this time)
+ * All possible on-board LEDs on the Nucleo-F756ZG.
+ * 
+ * LED 0 = GREEN
+ * 
+ * LED 1 = BLUE
+ * 
+ * LED 2 = RED
  * @author Ian Wilkey
  */
 typedef enum {
-    OSI_CMD_UNKNOWN = 0UL,
-    OSI_CMD_HELP,
-    OSI_CMD_TASKS,
-    OSI_CMD_TICKS,
-    OSI_CMD_UPTIME,
-    OSI_CMD_FREQ,
-    OSI_CMD_ABOUT,
-    OSI_CMD_FAULT,
-    OSI_CMD_REBOOT,
-    OSI_CMD_COUNT
-} osi_cmd_t;
+    LED_0 = 0UL,
+    LED_1,
+    LED_2
+} bsp_led_t;
 
 /**
- * Mapped command literals.
- */
-static const char * const OSI_COMMAND_LITERALS[OSI_CMD_COUNT] = {
-  "unknown",
-  "help",
-  "tasks",
-  "ticks",
-  "uptime",
-  "freq",
-  "about",
-  "fault",
-  "reboot"
-};
-
-/**
- * Initializes RTOSK's tiny Operating System Interface (OSI) at given baud and task priority.
+ * Initializes the on-board LEDs for the Nucleo-F756ZG.
  * @author Ian Wilkey
  */
-void rtosk_osi_init(uint32_t baud, uint32_t priority);
+void rtosk_bsp_f756zg_on_board_led_init(void);
 
-#endif /// _RTOSK_OSI_H_
+/**
+ * Sets the state of some F756ZG on-board LED to the given state, which should be one of 0U or 1U.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_set_on_board_led(const bsp_led_t led, const uint8_t state);
+
+/**
+ * Toggles the current state of some F756ZG on-board LED.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_toggle_on_board_led(const bsp_led_t led);
+
+#endif /// _RTOSK_BSP_F756ZG_GPIO_PORT_B_H_

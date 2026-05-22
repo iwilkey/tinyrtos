@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    scheduler.c
+  * @file    usart3.h
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,41 +29,63 @@
   ******************************************************************************
   */
 
-#include "scheduler.h"
-#include "task.h"
+#ifndef _RTOSK_BSP_F756ZG_USART3_H_
+#define _RTOSK_BSP_F756ZG_USART3_H_
 
-void rtosk_scheduler_select_next(void) {
-    uint32_t task_count = rtosk_task_get_count();
-    if(task_count == 0UL) {
-        return;
-    }
-    uint32_t current = rtosk_task_get_current_index();
-    uint32_t best_index = RTOSK_IDLE_TASK_INDEX;
-    uint32_t best_priority = 0UL;
-    uint32_t found_ready = 0UL;
-    for(uint32_t offset = 1UL; offset <= task_count; offset++) {
-        uint32_t index = current + offset;
-        if(index >= task_count) {
-            index -= task_count;
-        }
-        rtosk_task_t *task = rtosk_task_get(index);
-        if(task == 0) {
-            continue;
-        }
-        if(task->state != RTOSK_TASK_READY) {
-            continue;
-        }
-        if(found_ready == 0UL || task->priority > best_priority) {
-            best_index = index;
-            best_priority = task->priority;
-            found_ready = 1UL;
-        }
-    }
-    if(found_ready != 0UL) {
-        rtosk_task_set_current_index(best_index);
-        return;
-    }
-    if(rtosk_task_is_idle_ready() != 0UL) {
-        rtosk_task_set_current_index(RTOSK_IDLE_TASK_INDEX);
-    }
-}
+#include <stdint.h>
+#include <stm32f7xx.h>
+
+/**
+ * This file strictly concerns GPIO on Nucleo-F756ZG's PORT D, where the TX and
+ * RX lines on USART3 are located.
+ */
+#define BSP_PORT_D GPIOD
+
+/**
+ * CMSIS's macro for locating the USART3 peripheral on the target board.
+ */
+#define BSP_USART3 USART3
+
+/**
+ * USART3 peripheral TX on the Nucleo-F756ZG is located here on PORT D.
+ */
+#define BSP_USART3_GPIO_TX 8UL
+
+/**
+ * USART3 peripheral RX on the Nucleo-F756ZG is located here on PORT D.
+ */
+#define BSP_USART3_GPIO_RX 9UL
+
+/**
+ * Initializes USART3 on Nucleo-F756ZG over ST-LINK virtual COM port at given BAUD.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_usart3_init(uint32_t baud);
+
+/**
+ * Writes one character out through TX USART3 on Nucleo-F756ZG.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_usart3_write_char(char c);
+
+/**
+ * Writes one string out through TX USART3 on Nucleo-F756ZG.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_usart3_write_string(const char *s);
+
+/**
+ * Enables USART3 on Nucleo-F756ZG RX interrupt.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_uart_enable_rx_interrupt(void);
+
+/**
+ * Weak ISR hook called when USART3 on Nucleo-F756ZG recieves a byte.
+ * 
+ * Override this in application code to pass recieved data into the RTOS, usually by using a queue from the ISR.
+ * @author Ian Wilkey
+ */
+void rtosk_bsp_f756zg_usart3_rx_callback_from_isr(uint8_t c);
+
+#endif /// _RTOSK_BSP_F756ZG_USART3_H_

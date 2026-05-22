@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    mutex.c
+  * @file    led.c
   * @author  Ian Wilkey
   * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
   *          written from scratch in C.
@@ -29,56 +29,42 @@
   ******************************************************************************
   */
 
-#include "mutex.h"
-#include "kernel.h"
-#include "task.h"
+#include <tinyrtos/bsp/f756zg/led.h>
 
-void rtosk_mutex_init(rtosk_mutex_t * mutex) {
-    if(mutex == 0) {
-        return;
+/**
+ * Whether or not the BSP LED system has been initialized already this runtime.
+ */
+static uint8_t RTOSK_BSP_F756ZG_LED_INIT = 0U;
+
+void rtosk_bsp_f756zg_on_board_led_init(void) {
+    if(RTOSK_BSP_F756ZG_LED_INIT) return;
+    /// enable GPIOB peripheral clock and wait a cycle
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+    (void)RCC->AHB1ENR;
+    for(uint32_t i = LED_0; i <= LED_2; i++) {
+        /// set as GPIO
+        GPIOB->MODER   &= ~(0x3U << ((i * 7UL) * 2U));
+        GPIOB->MODER   |=  (0x1U << ((i * 7UL) * 2U));
+        /// set as OUTPUT
+        GPIOB->OTYPER  &= ~(1U << (i * 7UL));
+        /// low-speed is fine for this project
+        GPIOB->OSPEEDR &= ~(0x3U << ((i * 7UL) * 2U));
+        /// no pull up or pull down resistors
+        GPIOB->PUPDR   &= ~(0x3U << ((i * 7UL) * 2U));
     }
-    mutex->owner = RTOSK_MUTEX_NO_OWNER;
-    mutex->waiting_task = RTOSK_MUTEX_NO_WAITER;
+    RTOSK_BSP_F756ZG_LED_INIT = 1U;
 }
 
-void rtosk_mutex_lock(rtosk_mutex_t * mutex) {
-    if(mutex == 0) {
-        return;
-    }
-    for(;;) {
-        rtosk_kernel_enter_critical();
-        uint32_t current = rtosk_task_get_current_index();
-        if(mutex->owner == RTOSK_MUTEX_NO_OWNER) {
-            mutex->owner = current;
-            rtosk_kernel_exit_critical();
-            return;
-        }
-        if(mutex->owner == current) {
-            rtosk_kernel_exit_critical();
-            return;
-        }
-        mutex->waiting_task = current;
-        rtosk_task_block_current_on_mutex();
-        rtosk_kernel_exit_critical();
-        rtosk_kernel_yield();
-    }
+void rtosk_bsp_f756zg_set_on_board_led(const bsp_led_t led, const uint8_t state) {
+    if(led < LED_0 || led > LED_2) return;
+    if(state == 1U) {
+        GPIOB->ODR |= (1U << (led * 7UL));
+    } else if(state == 0U) {
+        GPIOB->ODR &= ~(1U << (led * 7UL));
+    } else return;
 }
 
-void rtosk_mutex_unlock(rtosk_mutex_t * mutex) {
-    if(mutex == 0) {
-        return;
-    }
-    rtosk_kernel_enter_critical();
-    uint32_t current = rtosk_task_get_current_index();
-    if(mutex->owner != current) {
-        rtosk_kernel_exit_critical();
-        return;
-    }
-    mutex->owner = RTOSK_MUTEX_NO_OWNER;
-    if(mutex->waiting_task != RTOSK_MUTEX_NO_WAITER) {
-        rtosk_task_set_ready(mutex->waiting_task);
-        mutex->waiting_task = RTOSK_MUTEX_NO_WAITER;
-    }
-    rtosk_kernel_exit_critical();
-    rtosk_kernel_yield();
+void rtosk_bsp_f756zg_toggle_on_board_led(const bsp_led_t led) {
+    if(led < LED_0 || led > LED_2) return;
+    GPIOB->ODR ^= (1U << (led * 7UL));
 }

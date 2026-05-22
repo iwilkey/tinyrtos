@@ -29,12 +29,12 @@
   ******************************************************************************
   */
 
-#include "port.h"
-#include "task.h"
-#include "scheduler.h"
-#include "fault.h"
+#include <tinyrtos/kernel/port.h>
+#include <tinyrtos/kernel/task.h>
+#include <tinyrtos/kernel/scheduler.h>
+#include <tinyrtos/kernel/fault.h>
 
-#include "stm32f7xx.h"
+#include <stm32f7xx.h>
 
 uint32_t * rtosk_port_align_stack_pointer(uint32_t *sp) {
     return (uint32_t *)((uint32_t)sp & ~0x7UL);

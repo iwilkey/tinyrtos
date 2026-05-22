@@ -29,7 +29,7 @@
   ******************************************************************************
   */
 
-#include "usart3.h"
+#include <tinyrtos/bsp/f756zg/usart3.h>
 
 /**
  * Whether or not the BSP USART3 system has been initialized already this runtime.

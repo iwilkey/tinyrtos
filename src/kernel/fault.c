@@ -29,9 +29,10 @@
   ******************************************************************************
   */
 
-#include "fault.h"
-#include "f756zg/usart3.h"
-#include "stm32f7xx.h"
+#include <tinyrtos/kernel/fault.h>
+#include <tinyrtos/bsp/f756zg/usart3.h>
+
+#include <stm32f7xx.h>
 
 /**
  * Writes a string directly over USART3 during fault handling.
