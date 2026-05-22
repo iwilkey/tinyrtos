@@ -31,7 +31,9 @@
 
 #include <tinyrtos/kernel/scheduler.h>
 #include <tinyrtos/kernel/task.h>
+#include <tinyrtos/kernel/port.h>
 
+RTOSK_USED RTOSK_NOINLINE
 void rtosk_scheduler_select_next(void) {
     uint32_t task_count = rtosk_task_get_count();
     if(task_count == 0UL) {

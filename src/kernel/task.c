@@ -171,6 +171,7 @@ void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority, const cha
     RTOSK_TASK_COUNT++;
 }
 
+RTOSK_USED RTOSK_NOINLINE
 void rtosk_task_save_stack_pointer(uint32_t * sp) {
     if(RTOSK_TASK_COUNT == 0UL) {
         return;
@@ -215,6 +216,7 @@ void rtosk_task_set_ready(uint32_t index) {
     RTOSK_TASKS[index].state = RTOSK_TASK_READY;
 }
 
+RTOSK_USED RTOSK_NOINLINE
 uint32_t * rtosk_task_get_stack_pointer(void) {
     if(RTOSK_CURRENT_TASK == RTOSK_IDLE_TASK_INDEX) {
         return RTOSK_TASKS[RTOSK_IDLE_TASK_INDEX].sp;

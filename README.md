@@ -2,87 +2,192 @@
 
 A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely from scratch in C.
 
-* Initial Author: Ian Wilkey
-* Start Date: May 19th, 2026
-* Latest version: 2026.5.22+3
-* License: MIT
-* Target MCU: STM32F756ZG (ARM Cortex-M7)
-* Toolchain: GCC ARM (supported by PlatformIO)
-* **Approximate footprint: ~6 KB RAM, ~6 KB Flash**
+**tinyrtos** is a small Cortex-M-focused RTOS designed around deterministic behavior, static allocation, readability, and low overhead. The project began as a deep dive into RTOS internals and has evolved into an effort to build a genuinely practical embedded kernel while preserving architectural simplicity and a very small footprint.
 
----
-
-## Demo
-
-![TinyRTOS OSI Demo](assets/tinyrtos_osi_demo.gif)
-
-Above is a demonstration of TinyRTOS running on an STM32 Nucleo-F756ZG, rendering and dispatching all currently supported OSI commands over USART3 as of version 2026.5.21+2.
-
----
-
-## Table of Contents
-
-- [Why I Built This](#why-i-built-this)
-- [Features](#features)
-- [Public API](#public-api)
-- [OSI (Operating System Interface)](#osi-operating-system-interface)
-- [Current Limitations](#current-limitations)
-- [Official Planned Improvements](#official-planned-improvements)
-- [Building](#building)
-- [Serial Monitor / OSI Access](#serial-monitor--osi-access)
-- [Contributing](#contributing)
-- [Educational Use](#educational-use)
-
----
-
-## Why I Built This
-
-**tinyrtos** was built as a learning project to fully understand how a real-time operating system works internally on ARM Cortex-M hardware without relying on existing RTOS implementations such as FreeRTOS or Zephyr.
-
-The goal of this project was to implement the core concepts manually and understand the architecture from first principles.
-
-This project intentionally stays very close to the hardware and avoids unnecessary abstraction layers.
-
----
-
-## Features
-
-**tinyrtos** currently includes:
-
-* Preemptive priority scheduler
-* PendSV context switching
-* SVC-based task startup
-* SysTick kernel tick
-* Separate PSP task stacks
-* Round-robin scheduling within priorities
-* Task sleep/blocking
-* Idle task
-* Critical sections
-* Counting semaphores
-* Queues
-* Mutexes
-* ISR-safe synchronization APIs
-* UART shell / OSI (Operating System Interface)
-* STM32 board support package (BSP)
-
-#### Since
-
-* Since 2026.5.21+1: Task stack watermarking and scheduler diagnostics (through OSI 'tasks' command)
-* Since 2026.5.21+2: HardFault register dump support (see dump below)
+Unlike large RTOS ecosystems focused on portability and extensive middleware integration, tinyrtos intentionally stays close to the hardware and exposes the underlying execution model directly.
 
 <p align="center">
-  <img src="assets/tinyrtos_hardfault_demo.png" alt="TinyRTOS HardFault handler">
+  <img src="assets/tinyrtos_osi_demo.gif" alt="TinyRTOS OSI Demo">
+</p>
+
+<p align="center">
+  TinyRTOS running on an STM32 Nucleo-F756ZG demonstrating the built-in OSI runtime shell.
 </p>
 
 ---
 
+## Current Status
+
+**tinyrtos** currently supports:
+
+* Preemptive priority scheduling
+* Round-robin scheduling within equal priorities
+* PendSV context switching
+* SVC-based task startup
+* Separate PSP task stacks
+* Blocking and sleeping tasks
+* Counting semaphores
+* Mutexes
+* Queues
+* ISR-safe synchronization APIs
+* Stack watermarking
+* HardFault register dump diagnostics
+* Runtime task diagnostics through the OSI
+* STM32F756ZG board support package
+
+The kernel currently targets STM32F7 Cortex-M7 hardware and is built/tested using PlatformIO and GCC ARM.
+
+This project is not yet production-ready, but it is intentionally moving in that direction.
+
+The long-term design philosophy is:
+
+* deterministic behavior
+* small memory footprint
+* static allocation where possible
+* understandable architecture
+* practical embedded usability
+* minimal abstraction overhead
+
+---
+
+## Footprint
+
+Measured on STM32 Nucleo-F756ZG using the GCC ARM compilation of the simple `nucleo_f756zg_osi` example.
+
+| Build Flags | Flash Size (Bytes) | Description |
+|:---:|:---:|:---:|
+| `-O0` | 12,044 | Debug, no optimization |
+| `-Og` | 9,780 | Debug-friendly optimization |
+| `-O1` | 9,708 | Light optimization |
+| `-O2` | 9,772 | General optimization |
+| `-Os` | 9,164 | Size optimization |
+
+**NOTE:** Full-kernel LTO: not currently supported due to naked assembly references across translation units. Fix planned.
+
+---
+
+## Design Goals
+
+**tinyrtos** is intentionally designed around a smaller and more deterministic execution model than larger RTOS ecosystems.
+
+The kernel currently uses:
+
+* statically allocated tasks
+* bounded scheduler structures
+* no dynamic heap allocation
+* direct Cortex-M exception usage
+* explicit synchronization primitives
+
+This keeps the architecture relatively small and easy to reason about while still supporting real preemptive multitasking behavior.
+
+The goal is not to compete directly with FreeRTOS, Zephyr, ThreadX, or other mature RTOS ecosystems. Those systems are significantly more portable, feature-rich, and battle-tested.
+
+Instead, tinyrtos aims to provide:
+
+* a readable RTOS implementation
+* a strong educational/reference kernel
+* a lightweight embedded execution environment
+* a foundation for experimentation and continued RTOS development
+
+---
+
+## Repository Structure
+
+```text
+include/tinyrtos/
+  bsp/
+  kernel/
+  osi/
+src/
+  f756zg/
+  kernel/
+  osi/
+examples/
+  nucleo_f756zg_osi/
+```
+
+The reusable RTOS library lives under `include/` and `src/`.
+
+Example firmware projects are provided separately under `examples/`.
+
+---
+
+## Building The Example
+
+The primary example project is located at:
+
+```text
+examples/nucleo_f756zg_osi
+```
+
+Requirements:
+
+* VSCode
+* PlatformIO
+* STM32 Nucleo-F756ZG
+
+Build and flash:
+
+```bash
+cd examples/nucleo_f756zg_osi
+pio run -t upload
+```
+
+Open a serial monitor:
+
+```bash
+pio device monitor -b 115200
+```
+
+You should see the TinyRTOS OSI boot banner.
+
+---
+
+## Using tinyrtos
+
+Now published to the PlatformIO registry, **tinyrtos** can be added to your project through `lib_deps`.
+
+Example `platformio.ini`:
+
+```ini
+[env:nucleo_f756zg]
+platform = ststm32
+board = nucleo_f756zg
+framework = cmsis
+upload_protocol = stlink
+monitor_speed = 115200
+
+lib_deps =
+    iwilkey/tinyrtos
+```
+
+For boards other than the Nucleo-F756ZG, you will need to provide or implement a board support package for your target hardware.
+
 ## Public API
 
-The public tinyrtos API is intentionally small and subject to change.
+Example task creation:
 
-### Kernel
+```c
+#include <tinyrtos/kernel/kernel.h>
 
-```C
+static void led_task(void) {
+    while(1) {
+        rtosk_kernel_sleep_ms(1000UL);
+    }
+}
+
+int main(void) {
+    rtosk_kernel_systick_init();
+    rtosk_kernel_create_task(led_task, 1UL, "led");
+    rtosk_kernel_start();
+
+    for(;;) {}
+}
+```
+
+Core kernel API:
+
+```c
 void rtosk_kernel_systick_init(void);
 void rtosk_kernel_create_task(rtosk_task_func_t task_func, uint32_t priority, const char * name);
 void rtosk_kernel_start(void);
@@ -91,9 +196,9 @@ void rtosk_kernel_yield(void);
 uint32_t rtosk_kernel_get_ticks(void);
 ```
 
-### Synchronization
+Synchronization:
 
-```C
+```c
 void rtosk_semaphore_init(rtosk_semaphore_t * sem, uint32_t initial_count);
 void rtosk_semaphore_take(rtosk_semaphore_t * sem);
 void rtosk_semaphore_give(rtosk_semaphore_t * sem);
@@ -104,166 +209,121 @@ void rtosk_mutex_lock(rtosk_mutex_t * mutex);
 void rtosk_mutex_unlock(rtosk_mutex_t * mutex);
 ```
 
-### Queues
+Queues:
 
-```C
+```c
 void rtosk_queue_init(rtosk_queue_t * queue, void * buffer, uint32_t item_size, uint32_t capacity);
 uint32_t rtosk_queue_send(rtosk_queue_t * queue, const void * item);
 uint32_t rtosk_queue_send_from_isr(rtosk_queue_t * queue, const void * item);
 uint32_t rtosk_queue_receive(rtosk_queue_t * queue, void * item);
 ```
 
-### Nucleo-F756ZG Board Support Package
+Public headers are exposed under:
 
-```C
-void rtosk_bsp_f756zg_on_board_led_init(void);
-void rtosk_bsp_f756zg_set_on_board_led(const bsp_led_t led, const uint8_t state);
-void rtosk_bsp_f756zg_toggle_on_board_led(const bsp_led_t led);
-
-void rtosk_bsp_f756zg_usart3_init(uint32_t baud);
-void rtosk_bsp_f756zg_usart3_write_char(char c);
-void rtosk_bsp_f756zg_usart3_write_string(const char *s);
-void rtosk_bsp_f756zg_uart_enable_rx_interrupt(void);
-void rtosk_bsp_f756zg_usart3_rx_callback_from_isr(uint8_t c);
+```c
+#include <tinyrtos/kernel/kernel.h>
+#include <tinyrtos/kernel/queue.h>
+#include <tinyrtos/kernel/mutex.h>
+#include <tinyrtos/kernel/semaphore.h>
+#include <tinyrtos/osi/osi.h>
 ```
-
-Any API added or changed through contributions must be included/updated here.
 
 ---
 
 ## OSI (Operating System Interface)
 
-**tinyrtos** includes a lightweight UART shell called the OSI.
+tinyrtos includes a lightweight UART runtime shell called the OSI.
 
-The OSI allows interaction with the RTOS at runtime through a serial terminal.
-
-Current commands:
+The OSI currently provides:
 
 ```text
 help
+about
+freq
+uptime
 ticks
-tasks  (since 2026.5.21+1)
-uptime (since 2026.5.21+1)
-freq   (since 2026.5.21+1)
-about  (since 2026.5.21+1)
-fault  (since 2026.5.21+2)
-reboot (since 2026.5.21+1)
+tasks
+fault
+reboot
 ```
 
-The OSI is intended to become the primary diagnostics and debugging interface for the kernel.
+The OSI is intended to evolve into the primary runtime diagnostics and debugging interface for the kernel.
+
+<p align="center">
+  <img src="assets/tinyrtos_hardfault_demo.png" alt="TinyRTOS HardFault Handler">
+</p>
 
 ---
 
 ## Current Limitations
 
-**tinyrtos** is intentionally small and educational in scope.
+tinyrtos intentionally remains relatively small and focused.
 
-The kernel currently does NOT include:
+The kernel does not yet implement:
 
-* Priority inheritance
-* BASEPRI interrupt masking
-* Dynamic memory allocation
-* Stack overflow detection
-* Memory protection (MPU)
-* Tickless idle
-* SMP or multicore support
-* Userspace/process isolation
-* Filesystems
-* Networking
-* Software timers
-* Event groups
-* Task deletion
+* priority inheritance
+* dynamic task allocation/deletion
+* stack overflow trapping
+* MPU isolation
+* tickless idle
+* software timers
+* event groups
+* SMP/multicore support
+* networking/filesystems
 
-That said, the absence of these features today does not mean they will never exist. **Future development may include many of the advanced capabilities listed above, either by myself or contributors.**
+Applications are currently expected to:
 
-As it currently stands, tinyrtos is functional enough to support real embedded firmware applications, especially those that require a small footprint and deterministic behavior. 
+* avoid deadlock by design
+* acquire resources consistently
+* avoid unbounded priority inversion
 
-*However*, it is still primarily an **educational and experimental RTOS kernel** and should **not yet** be considered production-ready due to the lack of advanced safety, debugging, memory protection, and fault-handling mechanisms...
-
-*you're more than welcome to add those yourself, though* ;)
+These are known limitations and active areas of future development.
 
 ---
 
-## Official Planned Improvements
+## Planned Direction
 
-Future planned improvements include:
+Current areas of interest include:
 
-* Additional OSI commands
-* Logging subsystem
-* Event flags / event groups
-* Improved scheduler diagnostics
-* Better BSP abstraction
-* Additional board support
+* priority inheritance
+* improved scheduler diagnostics
+* event groups
+* software timers
+* stronger fault diagnostics
+* better BSP abstraction
+* additional Cortex-M targets
+* performance benchmarking
+* lightweight GUI/framebuffer experimentation
 
----
-
-## Building
-
-I built this project using **PlatformIO inside VSCode**, so I didn't have to mess with writing the linker script, compilation, flashing, and UART monitoring.
-
-### Requirements
-
-* VSCode
-* PlatformIO extension
-* STM32 Nucleo-F756ZG board
-
-### Build and Flash
-
-1. Clone the repository
-2. Open the project in VSCode
-3. Connect the STM32 board through USB/ST-Link
-4. Build and upload through PlatformIO
-
----
-
-## Serial Monitor / OSI Access
-
-After flashing, open a serial monitor at:
-
-```text
-115200 baud
-8-N-1
-```
-
-Example using PlatformIO monitor:
-
-```bash
-pio device monitor -b 115200
-```
-
-You should see the OSI boot banner and be able to interact with the system through UART commands.
-
-You may also use my provided *run.sh* which will compile, flash, and open a monitor in one fell swoop. A Windows batch or PowerShell equivalent is not included yet, but contributions are welcome.
-
-```bash
-cd tinyrtos
-./run.sh
-```
-
-PlatformIO can be installed through:
-
-- Homebrew (macOS)
-- Chocolatey (Windows)
-- pip (Linux/macOS/Windows)
+The long-term goal is to continue evolving tinyrtos toward a genuinely practical embedded RTOS while preserving readability, determinism, and low overhead.
 
 ---
 
 ## Contributing
 
-Contributions, ideas, critiques, and pull requests are all welcome.
+Contributions, critiques, architectural discussions, and pull requests are all welcome.
 
-This project was created primarily for learning and experimentation, so discussion around architecture tradeoffs, implementation quality, and RTOS design decisions is encouraged.
+If contributing code:
+
+* keep APIs small and explicit
+* prefer deterministic/static behavior
+* avoid unnecessary abstraction layers
+* preserve readability where possible
+* document architectural tradeoffs clearly
+
+Discussion around RTOS internals, Cortex-M exception handling, synchronization design, scheduling behavior, and embedded systems architecture is strongly encouraged.
 
 ---
 
-## Educational Use
+## License
 
-This project may be freely used for:
+**tinyrtos** is released under the MIT license.
 
-* embedded systems education
-* RTOS demonstrations
+It may be freely used for:
+
+* education
 * experimentation
-* firmware development
-* commercial products (see Current Limitations section, though!)
+* embedded firmware development
+* commercial applications
 
-under the terms of the MIT license.
+subject to the limitations described above.

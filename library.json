@@ -40,7 +40,10 @@
   ],
   "build": {
     "srcDir": "src",
-    "includeDir": "include"
+    "includeDir": "include",
+    "flags": [
+      "-fno-lto"
+    ]
   },
   "examples": [
     {

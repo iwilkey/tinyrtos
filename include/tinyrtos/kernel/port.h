@@ -34,6 +34,9 @@
 
 #include <stdint.h>
 
+#define RTOSK_USED __attribute__((used))
+#define RTOSK_NOINLINE __attribute__((noinline))
+
 /**
  * Thumb bit for stack frame.
  */
