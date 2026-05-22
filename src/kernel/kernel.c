@@ -138,6 +138,9 @@ void rtosk_kernel_exit_critical(void) {
 
 void rtosk_kernel_tick(void) {
     RTOSK_SYSTICKS++;
+    if(RTOSK_KERNEL_INIT == 0U) {
+        return;
+    }
     rtosk_task_update_blocked(RTOSK_SYSTICKS);
     rtosk_port_yield();
 }

@@ -171,8 +171,11 @@ void rtosk_task_create(rtosk_task_func_t task_func, uint32_t priority, const cha
     RTOSK_TASK_COUNT++;
 }
 
-RTOSK_USED RTOSK_NOINLINE
 void rtosk_task_save_stack_pointer(uint32_t * sp) {
+    if(RTOSK_CURRENT_TASK == RTOSK_IDLE_TASK_INDEX) {
+        RTOSK_TASKS[RTOSK_IDLE_TASK_INDEX].sp = sp;
+        return;
+    }
     if(RTOSK_TASK_COUNT == 0UL) {
         return;
     }
@@ -180,6 +183,9 @@ void rtosk_task_save_stack_pointer(uint32_t * sp) {
 }
 
 void rtosk_task_block_current_until(uint32_t wake_tick) {
+    if(RTOSK_CURRENT_TASK == RTOSK_IDLE_TASK_INDEX) {
+        return;
+    }
     RTOSK_TASKS[RTOSK_CURRENT_TASK].state = RTOSK_TASK_BLOCKED;
     RTOSK_TASKS[RTOSK_CURRENT_TASK].wake_tick = wake_tick;
 }
@@ -216,7 +222,6 @@ void rtosk_task_set_ready(uint32_t index) {
     RTOSK_TASKS[index].state = RTOSK_TASK_READY;
 }
 
-RTOSK_USED RTOSK_NOINLINE
 uint32_t * rtosk_task_get_stack_pointer(void) {
     if(RTOSK_CURRENT_TASK == RTOSK_IDLE_TASK_INDEX) {
         return RTOSK_TASKS[RTOSK_IDLE_TASK_INDEX].sp;

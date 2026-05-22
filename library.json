@@ -40,18 +40,25 @@
   ],
   "build": {
     "srcDir": "src",
-    "includeDir": "include",
-    "flags": [
-      "-fno-lto"
-    ]
+    "includeDir": "include"
   },
   "examples": [
     {
       "name": "Nucleo-F756ZG OSI Demo",
-      "base": "examples/nucleo_f756zg_osi",
+      "base": "examples/osi",
       "files": [
         "platformio.ini",
         "src/main.c"
+      ]
+    },
+    {
+      "name": "Nucleo-F756ZG GUI Demo",
+      "base": "examples/gui",
+      "files": [
+        "platformio.ini",
+        "src/main.c",
+        "src/dispatcher.c",
+        "include/dispatcher.h"
       ]
     }
   ]

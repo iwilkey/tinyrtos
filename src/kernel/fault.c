@@ -163,7 +163,6 @@ static void fault_print_fault_summary(uint32_t cfsr, uint32_t hfsr) {
     }
 }
 
-RTOSK_USED RTOSK_NOINLINE
 __attribute__((noreturn)) void rtosk_fault_hardfault_handler(uint32_t * stacked_registers, uint32_t exc_return) {
     __disable_irq();
     fault_write("\r\n");

@@ -1,5 +1,7 @@
 # tinyrtos
 
+[![PlatformIO Registry](https://badges.registry.platformio.org/packages/iwilkey/library/tinyrtos.svg)](https://registry.platformio.org/libraries/iwilkey/tinyrtos)
+
 A compact, preemptive priority RTOS kernel for ARM Cortex-M, written completely from scratch in C.
 
 **tinyrtos** is a small Cortex-M-focused RTOS designed around deterministic behavior, static allocation, readability, and low overhead. The project began as a deep dive into RTOS internals and has evolved into an effort to build a genuinely practical embedded kernel while preserving architectural simplicity and a very small footprint.
@@ -52,7 +54,7 @@ The long-term design philosophy is:
 
 ## Footprint
 
-Measured on STM32 Nucleo-F756ZG using the GCC ARM compilation of the simple `nucleo_f756zg_osi` example.
+Measured on STM32 Nucleo-F756ZG using the GCC ARM compilation of the simple `osi` example.
 
 | Build Flags | Flash Size (Bytes) | Description |
 |:---:|:---:|:---:|
@@ -103,7 +105,8 @@ src/
   kernel/
   osi/
 examples/
-  nucleo_f756zg_osi/
+  osi/
+  gui/
 ```
 
 The reusable RTOS library lives under `include/` and `src/`.
@@ -117,7 +120,7 @@ Example firmware projects are provided separately under `examples/`.
 The primary example project is located at:
 
 ```text
-examples/nucleo_f756zg_osi
+examples/osi
 ```
 
 Requirements:
@@ -129,7 +132,7 @@ Requirements:
 Build and flash:
 
 ```bash
-cd examples/nucleo_f756zg_osi
+cd examples/osi
 pio run -t upload
 ```
 

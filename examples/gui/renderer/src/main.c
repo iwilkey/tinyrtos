@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    scheduler.c
+  * @file    main.c
   * @author  Ian Wilkey
-  * @brief   A compact, preemptive priority RTOS kernel for ARM Cortex-M, 
-  *          written from scratch in C.
+  * @brief   A reciever application that's capable of rendering a framebuffer
+  *          from a Nucleo-F756ZG board running TinyRTOS "gui" example.
   ******************************************************************************
   * @attention
   *
@@ -29,40 +29,39 @@
   ******************************************************************************
   */
 
-#include <tinyrtos/kernel/scheduler.h>
-#include <tinyrtos/kernel/task.h>
-#include <tinyrtos/kernel/port.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <serial.h>
+#include <renderer.h>
 
-void rtosk_scheduler_select_next(void) {
-    uint32_t task_count = rtosk_task_get_count();
-    if(task_count == 0UL) {
-        return;
+#define FB_WIDTH  128UL
+#define FB_HEIGHT 64UL
+#define FB_SCALE  6UL
+
+int main(void) {
+    gui_serial_t serial;
+    if(!gui_serial_open_auto(&serial, 115200UL)) {
+        printf("failed to connect to target device.\n");
+        return 1;
     }
-    uint32_t current = rtosk_task_get_current_index();
-    if(current >= task_count) {
-        current = 0UL;
+    printf("target connected.\n");
+    gui_renderer_t gui;
+    if(!gui_renderer_init(&gui, "TinyRTOS GUI", FB_WIDTH, FB_HEIGHT, FB_SCALE)) {
+        return 1;
     }
-    uint32_t best_index = RTOSK_IDLE_TASK_INDEX;
-    uint32_t best_priority = 0UL;
-    uint32_t found_ready = 0UL;
-    for(uint32_t offset = 0UL; offset < task_count; offset++) {
-        uint32_t index = current + offset;
-        if(index >= task_count) {
-            index -= task_count;
+    uint32_t x = 0UL;
+    while(!gui_renderer_poll_quit()) {
+        uint8_t rx;
+        int32_t n = gui_serial_read(&serial, &rx, 1U);
+        if(n == 1) {
+            x = (uint32_t)(rx % FB_WIDTH);
+            gui_renderer_clear(&gui);
+            for(uint32_t y = 0; y < FB_HEIGHT; y++) {
+                gui_renderer_draw_pixel(&gui, x, y, 1U);
+            }
+            gui_renderer_present(&gui);
         }
-        rtosk_task_t * task = rtosk_task_get(index);
-        if(task == 0 || task->state != RTOSK_TASK_READY) {
-            continue;
-        }
-        if(found_ready == 0UL || task->priority > best_priority) {
-            best_index = index;
-            best_priority = task->priority;
-            found_ready = 1UL;
-        }
     }
-    if(found_ready != 0UL) {
-        rtosk_task_set_current_index(best_index);
-    } else if(rtosk_task_is_idle_ready() != 0UL) {
-        rtosk_task_set_current_index(RTOSK_IDLE_TASK_INDEX);
-    }
+    gui_renderer_destroy(&gui);
+    return 0;
 }
