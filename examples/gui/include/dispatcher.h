@@ -34,8 +34,8 @@
 
 #include <stdint.h>
 
-#define DISPATCHER_CMD_BUFFER_SIZE 128UL
+#define TINYRTOS_GUI_DISPATCHER_CMD_BUFFER_SIZE 128UL
 
-void dispatcher_init(uint32_t baud, uint32_t priority);
+void gui_dispatcher_init(uint32_t baud, uint32_t priority);
 
 #endif /// _FREERTOS_GUI_DISPATCHER_H_

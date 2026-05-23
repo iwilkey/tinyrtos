@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    main.c
+  * @file    common.h
   * @author  Ian Wilkey
-  * @brief   A reciever application that's capable of rendering a framebuffer
-  *          from a Nucleo-F756ZG board running TinyRTOS "gui" example.
+  * @brief   A shared constants file for both the TinyRTOS framebuffer tasks and
+  *          the companion renderer.
   ******************************************************************************
   * @attention
   *
@@ -29,42 +29,11 @@
   ******************************************************************************
   */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <serial.h>
-#include <renderer.h>
+#ifndef _TINYRTOS_COMMON_H_
+#define _TINYRTOS_COMMON_H_
 
-#include "../../common.h"
+#define TINYRTOS_FRAMEBUFFER_WIDTH  128U
+#define TINYRTOS_FRAMEBUFFER_HEIGHT 64U
+#define TINYRTOS_RENDER_SCALE       8U
 
-int main(void) {
-    gui_serial_t serial;
-    if(!gui_serial_open_auto(&serial, 115200UL)) {
-        printf("failed to connect to target device.\n");
-        return 1;
-    }
-    printf("target connected.\n");
-    gui_renderer_t gui;
-    if(!gui_renderer_init(
-        &gui, 
-        "TinyRTOS GUI", 
-        TINYRTOS_FRAMEBUFFER_WIDTH, 
-        TINYRTOS_FRAMEBUFFER_HEIGHT, 
-        TINYRTOS_RENDER_SCALE)) {
-        return 1;
-    }
-    uint32_t x = 0UL;
-    while(!gui_renderer_poll_quit()) {
-        uint8_t rx;
-        int32_t n = gui_serial_read(&serial, &rx, 1U);
-        if(n == 1) {
-            x = (uint32_t)(rx % TINYRTOS_FRAMEBUFFER_WIDTH);
-            gui_renderer_clear(&gui);
-            for(uint32_t y = 0; y < TINYRTOS_FRAMEBUFFER_HEIGHT; y++) {
-                gui_renderer_draw_pixel(&gui, x, y, 1U);
-            }
-            gui_renderer_present(&gui);
-        }
-    }
-    gui_renderer_destroy(&gui);
-    return 0;
-}
+#endif /// _TINYRTOS_COMMON_H_

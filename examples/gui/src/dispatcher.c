@@ -38,16 +38,18 @@
 #include <tinyrtos/bsp/f756zg/led.h>
 #include <tinyrtos/bsp/f756zg/usart3.h>
 
+#include "../common.h"
+
 static uint8_t       DISPATCHER_INIT = 0U;
 static rtosk_queue_t DISPATCHER_USART3_RX_QUEUE;
 static rtosk_mutex_t DISPATCHER_USART3_TX_MUTEX;
-static uint8_t       DISPATCHER_USART3_RX_QUEUE_STORAGE[DISPATCHER_CMD_BUFFER_SIZE];
+static uint8_t       DISPATCHER_USART3_RX_QUEUE_STORAGE[TINYRTOS_GUI_DISPATCHER_CMD_BUFFER_SIZE];
 
 void rtosk_bsp_f756zg_usart3_rx_callback_from_isr(uint8_t c) {
     rtosk_queue_send_from_isr(&DISPATCHER_USART3_RX_QUEUE, &c);
 }
 
-static void dispatcher_task(void) {
+static void gui_dispatcher_task(void) {
     uint8_t x = 0U;
     for(;;) {
         rtosk_bsp_f756zg_toggle_on_board_led(LED_0);
@@ -55,14 +57,14 @@ static void dispatcher_task(void) {
         rtosk_bsp_f756zg_usart3_write_char((char)x);
         rtosk_mutex_unlock(&DISPATCHER_USART3_TX_MUTEX);
         x++;
-        if(x >= 128U) {
+        if(x >= TINYRTOS_FRAMEBUFFER_WIDTH) {
             x = 0U;
         }
         rtosk_kernel_sleep_ms(16UL);
     }
 }
 
-void dispatcher_init(uint32_t baud, uint32_t priority) {
+void gui_dispatcher_init(uint32_t baud, uint32_t priority) {
     if(DISPATCHER_INIT) return;
     rtosk_bsp_f756zg_on_board_led_init();
     rtosk_bsp_f756zg_usart3_init(baud);
@@ -70,10 +72,10 @@ void dispatcher_init(uint32_t baud, uint32_t priority) {
         &DISPATCHER_USART3_RX_QUEUE, 
         DISPATCHER_USART3_RX_QUEUE_STORAGE, 
         sizeof(uint8_t), 
-        DISPATCHER_CMD_BUFFER_SIZE
+        TINYRTOS_GUI_DISPATCHER_CMD_BUFFER_SIZE
     );
     rtosk_mutex_init(&DISPATCHER_USART3_TX_MUTEX);
     rtosk_bsp_f756zg_uart_enable_rx_interrupt();
-    rtosk_kernel_create_task(dispatcher_task, priority, "dispatcher");
+    rtosk_kernel_create_task(gui_dispatcher_task, priority, "dispatcher");
     DISPATCHER_INIT = 1U;
 }

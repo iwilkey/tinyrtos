@@ -36,6 +36,8 @@
 
 typedef struct {
     void * port;
+    uint32_t baud;
+    char port_name[256];
 } gui_serial_t;
 
 uint32_t gui_serial_open_auto(gui_serial_t * serial, uint32_t baud);

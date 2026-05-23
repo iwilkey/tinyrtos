@@ -34,7 +34,7 @@
 
 int main(void) {
     rtosk_kernel_systick_init();
-    dispatcher_init(115200UL, 3UL);
+    gui_dispatcher_init(115200UL, 3UL);
     rtosk_kernel_start();
     for(;;) {}
     return 0;
