@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    main.c
+  * @file    parser.c
   * @author  Ian Wilkey
   * @brief   A reciever application that's capable of rendering a framebuffer
   *          from a Nucleo-F756ZG board running TinyRTOS "gui" example.
@@ -29,47 +29,64 @@
   ******************************************************************************
   */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <serial.h>
-
 #include <parser.h>
-#include <renderer.h>
-
 #include "../../common.h"
 
-int main(void) {
-    gui_serial_t serial;
-    if(!gui_serial_open_auto(&serial, 921600UL)) {
-        printf("failed to connect to target device.\n");
-        return 1;
-    }
-    printf("target connected.\n");
-    gui_renderer_t gui;
-    if(!gui_renderer_init(
-        &gui, 
-        "TinyRTOS GUI", 
-        TINYRTOS_FRAMEBUFFER_WIDTH, 
-        TINYRTOS_FRAMEBUFFER_HEIGHT, 
-        TINYRTOS_RENDER_SCALE)) {
-        return 1;
-    }
-    uint32_t x = 0UL;
-    while(!gui_renderer_poll_quit()) {
-        uint8_t rx;
-        while(gui_serial_read(&serial, &rx, 1U) == 1) {
-            if(gui_protocol_feed(rx)) {
-                gui_renderer_clear(&gui);
-                for(uint32_t y = 0; y < TINYRTOS_FRAMEBUFFER_HEIGHT; y++) {
-                    for(uint32_t x = 0; x < TINYRTOS_FRAMEBUFFER_WIDTH; x++) {
-                        uint8_t v = get_fb()[y * TINYRTOS_FRAMEBUFFER_WIDTH + x];
-                        gui_renderer_draw_pixel(&gui, x, y, v);
-                    }
-                }
-                gui_renderer_present(&gui);
+static uint8_t TINYRTOS_FRAMEBUFFER[TINYRTOS_FRAMEBUFFER_SIZE];
+
+static rx_state_t state = RX_SOF0;
+static uint8_t    cmd = 0;
+static uint16_t   len = 0;
+static uint16_t   index = 0;
+static uint8_t    checksum = 0;
+
+int gui_protocol_feed(uint8_t byte) {
+    switch(state) {
+        case RX_SOF0:
+            if(byte == TINYRTOS_GUI_SOF0) state = RX_SOF1;
+            break;
+
+        case RX_SOF1:
+            state = (byte == TINYRTOS_GUI_SOF1) ? RX_CMD : RX_SOF0;
+            break;
+
+        case RX_CMD:
+            cmd = byte;
+            state = RX_LEN0;
+            break;
+
+        case RX_LEN0:
+            len = byte;
+            state = RX_LEN1;
+            break;
+
+        case RX_LEN1:
+            len |= ((uint16_t)byte << 8);
+            if(cmd != TINYRTOS_GUI_CMD_FRAME || len != TINYRTOS_FRAMEBUFFER_SIZE) {
+                state = RX_SOF0;
+                break;
             }
-        }
+            index = 0;
+            checksum = 0;
+            state = RX_PAYLOAD;
+            break;
+        case RX_PAYLOAD:
+            TINYRTOS_FRAMEBUFFER[index++] = byte;
+            checksum ^= byte;
+            if(index >= len) {
+                state = RX_CHECKSUM;
+            }
+            break;
+        case RX_CHECKSUM:
+            state = RX_SOF0;
+            return byte == checksum;
+        default:
+            state = RX_SOF0;
+            break;
     }
-    gui_renderer_destroy(&gui);
     return 0;
+}
+
+uint8_t * get_fb(void) {
+    return TINYRTOS_FRAMEBUFFER;
 }

@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    framebuffer.c
+  * @file    parser.h
   * @author  Ian Wilkey
-  * @brief   A framebuffer sent over serial to a reciever application that's capable of
-  *          rendering the image in real-time.
+  * @brief   A reciever application that's capable of rendering a framebuffer
+  *          from a Nucleo-F756ZG board running TinyRTOS "gui" example.
   ******************************************************************************
   * @attention
   *
@@ -29,19 +29,23 @@
   ******************************************************************************
   */
 
-#include <framebuffer.h>
+#ifndef _TINYRTOS_GUI_PARSER_H_
+#define _TINYRTOS_GUI_PARSER_H_
 
-static uint8_t TINYRTOS_FRAMEBUFFER[TINYRTOS_FRAMEBUFFER_SIZE];
+#include <stdint.h>
 
-void fb_clear(void) {
-  for(int i = 0; i < TINYRTOS_FRAMEBUFFER_SIZE; i++) TINYRTOS_FRAMEBUFFER[i] = 0x0;
-}
+typedef enum {
+    RX_SOF0,
+    RX_SOF1,
+    RX_CMD,
+    RX_LEN0,
+    RX_LEN1,
+    RX_PAYLOAD,
+    RX_CHECKSUM
+} rx_state_t;
 
-void fb_set_pixel(uint16_t x, uint16_t y, uint8_t v) {
-  if(x >= TINYRTOS_FRAMEBUFFER_WIDTH || y >= TINYRTOS_FRAMEBUFFER_HEIGHT) return;
-  TINYRTOS_FRAMEBUFFER[y * TINYRTOS_FRAMEBUFFER_WIDTH + x] = v;
-}
+int gui_protocol_feed(uint8_t byte);
 
-uint8_t * fb_get() {
-  return TINYRTOS_FRAMEBUFFER;
-}
+uint8_t * get_fb(void);
+
+#endif /// _TINYRTOS_GUI_PARSER_H_

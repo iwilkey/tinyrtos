@@ -34,8 +34,12 @@
 
 #include <stdint.h>
 
-#include "../../common.h"
+#include "../common.h"
 
-#define TINYRTOS_FRAMEBUFFER_SIZE (TINYRTOS_FRAMEBUFFER_WIDTH * TINYRTOS_FRAMEBUFFER_WIDTH)
+void fb_clear(void);
+
+void fb_set_pixel(uint16_t x, uint16_t y, uint8_t v);
+
+uint8_t * fb_get();
 
 #endif /// _FREERTOS_GUI_FRAMEBUFFER_H_

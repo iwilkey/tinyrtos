@@ -14,6 +14,7 @@ add_executable(tinyrtos_gui_renderer
     src/main.c
     src/renderer.c
     src/serial.c
+    src/parser.c
 )
 
 target_include_directories(tinyrtos_gui_renderer PRIVATE
