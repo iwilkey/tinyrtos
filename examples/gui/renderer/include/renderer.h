@@ -56,6 +56,10 @@ void gui_renderer_present(gui_renderer_t * gui);
 
 void gui_renderer_draw_pixel(gui_renderer_t * gui, uint32_t x, uint32_t y, uint8_t on);
 
+void gui_renderer_clear_color(gui_renderer_t *gui, uint8_t color);
+
+void gui_renderer_draw_line(gui_renderer_t *gui, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint8_t color);
+
 void gui_renderer_destroy(gui_renderer_t * gui);
 
 uint32_t gui_renderer_poll_quit(void);

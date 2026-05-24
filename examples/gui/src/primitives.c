@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    main.c
+  * @file    primitives.c
   * @author  Ian Wilkey
-  * @brief   A reciever application that's capable of rendering a framebuffer
-  *          from a Nucleo-F756ZG board running TinyRTOS "gui" example.
+  * @brief   A framebuffer sent over serial to a reciever application that's capable of
+  *          rendering the image in real-time.
   ******************************************************************************
   * @attention
   *
@@ -29,39 +29,54 @@
   ******************************************************************************
   */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <serial.h>
+#include <primitives.h>
+#include "../common.h"
 
-#include <parser.h>
-#include <renderer.h>
+static gui_write_fn_t gui_write = 0;
 
-#include "../../common.h"
+static uint8_t checksum(const uint8_t * buf, uint16_t len) {
+    uint8_t c = 0;
+    for(uint16_t i = 0; i < len; i++) {
+        c ^= buf[i];
+    }
+    return c;
+}
 
-int main(void) {
-    gui_serial_t serial;
-    if(!gui_serial_open_auto(&serial, 921600UL)) {
-        printf("failed to connect to target device.\n");
-        return 1;
+static void send_cmd(uint8_t cmd, const uint8_t * payload, uint8_t len) {
+    uint8_t packet[32];
+    uint8_t n = 0;
+    packet[n++] = TINYRTOS_GUI_SOF0;
+    packet[n++] = TINYRTOS_GUI_SOF1;
+    packet[n++] = cmd;
+    packet[n++] = len;
+    for(uint8_t i = 0; i < len; i++) {
+        packet[n++] = payload[i];
     }
-    printf("target connected.\n");
-    gui_renderer_t gui;
-    if(!gui_renderer_init(
-        &gui, 
-        "TinyRTOS GUI", 
-        TINYRTOS_FRAMEBUFFER_WIDTH, 
-        TINYRTOS_FRAMEBUFFER_HEIGHT, 
-        TINYRTOS_RENDER_SCALE)) {
-        return 1;
+    packet[n++] = checksum(&packet[2], (uint16_t)(2U + len));
+    if(gui_write) {
+        gui_write(packet, n);
     }
-    gui_protocol_set_renderer(&gui);
-    uint32_t x = 0UL;
-    while(!gui_renderer_poll_quit()) {
-        uint8_t rx;
-        while(gui_serial_read(&serial, &rx, 1U) == 1) {
-            gui_protocol_feed(rx);
-        }
-    }
-    gui_renderer_destroy(&gui);
-    return 0;
+}
+
+void gui_primitives_init(gui_write_fn_t write_fn) {
+    gui_write = write_fn;
+}
+
+void gui_clear(uint8_t color) {
+    uint8_t payload[1] = {color};
+    send_cmd(TINYRTOS_GUI_CMD_CLEAR, payload, 1);
+}
+
+void gui_draw_pixel(uint8_t x, uint8_t y, uint8_t color) {
+    uint8_t payload[3] = {x, y, color};
+    send_cmd(TINYRTOS_GUI_CMD_PIXEL, payload, 3);
+}
+
+void gui_draw_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color) {
+    uint8_t payload[5] = {x0, y0, x1, y1, color};
+    send_cmd(TINYRTOS_GUI_CMD_LINE, payload, 5);
+}
+
+void gui_present(void) {
+    send_cmd(TINYRTOS_GUI_CMD_PRESENT, 0, 0);
 }

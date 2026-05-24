@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    framebuffer.h
+  * @file    primitives.h
   * @author  Ian Wilkey
   * @brief   A framebuffer sent over serial to a reciever application that's capable of
   *          rendering the image in real-time.
@@ -29,17 +29,23 @@
   ******************************************************************************
   */
 
-#ifndef _FREERTOS_GUI_FRAMEBUFFER_H_
-#define _FREERTOS_GUI_FRAMEBUFFER_H_
+#ifndef _FREERTOS_GUI_PRIMITIVES_H_
+#define _FREERTOS_GUI_PRIMITIVES_H_
 
 #include <stdint.h>
 
-#include "../common.h"
+#define RGB332(r,g,b) (uint8_t)((((r) & 0x07U) << 5) | (((g) & 0x07U) << 2) | ((b) & 0x03U))
 
-void fb_clear(void);
+typedef void (*gui_write_fn_t)(const uint8_t * data, uint16_t len);
 
-void fb_set_pixel(uint16_t x, uint16_t y, uint8_t v);
+void gui_primitives_init(gui_write_fn_t write_fn);
 
-uint8_t * fb_get();
+void gui_clear(uint8_t color);
 
-#endif /// _FREERTOS_GUI_FRAMEBUFFER_H_
+void gui_draw_pixel(uint8_t x, uint8_t y, uint8_t color);
+
+void gui_draw_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color);
+
+void gui_present(void);
+
+#endif /// _FREERTOS_GUI_PRIMITIVES_H_

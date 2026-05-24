@@ -32,6 +32,12 @@
 #include <renderer.h>
 #include <SDL2/SDL.h>
 
+static void rgb332_decode(uint8_t c, uint8_t *r, uint8_t *g, uint8_t *b) {
+    *r = (uint8_t)(((c >> 5) & 0x07U) * 255U / 7U);
+    *g = (uint8_t)(((c >> 2) & 0x07U) * 255U / 7U);
+    *b = (uint8_t)(( c       & 0x03U) * 255U / 3U);
+}
+
 uint32_t gui_renderer_init(gui_renderer_t * gui, const char * title, uint32_t width, uint32_t height, uint32_t scale) {
     if(gui == 0) {
         return 0;
@@ -67,6 +73,11 @@ uint32_t gui_renderer_init(gui_renderer_t * gui, const char * title, uint32_t wi
     return 1;
 }
 
+void gui_renderer_clear_color(gui_renderer_t *gui, uint8_t color) {
+    SDL_SetRenderDrawColor((SDL_Renderer *)gui->renderer, color, color, color, 255);
+    SDL_RenderClear((SDL_Renderer *)gui->renderer);
+}
+
 void gui_renderer_clear(gui_renderer_t * gui) {
     SDL_SetRenderDrawColor((SDL_Renderer *)gui->renderer, 0, 0, 0, 255);
     SDL_RenderClear((SDL_Renderer *)gui->renderer);
@@ -76,18 +87,42 @@ void gui_renderer_present(gui_renderer_t * gui) {
     SDL_RenderPresent((SDL_Renderer *)gui->renderer);
 }
 
-void gui_renderer_draw_pixel(gui_renderer_t * gui, uint32_t x, uint32_t y, uint8_t on) {
+void gui_renderer_draw_pixel(gui_renderer_t *gui, uint32_t x, uint32_t y, uint8_t color) {
     SDL_Rect rect;
+    uint8_t r, g, b;
+    if(x >= gui->width || y >= gui->height) return;
+    rgb332_decode(color, &r, &g, &b);
     rect.x = (int)(x * gui->scale);
     rect.y = (int)(y * gui->scale);
     rect.w = (int)gui->scale;
     rect.h = (int)gui->scale;
-    if(on) {
-        SDL_SetRenderDrawColor((SDL_Renderer *)gui->renderer, 255, 255, 255, 255);
-    } else {
-        SDL_SetRenderDrawColor((SDL_Renderer *)gui->renderer, 0, 0, 0, 255);
-    }
+    SDL_SetRenderDrawColor((SDL_Renderer *)gui->renderer, r, g, b, 255);
     SDL_RenderFillRect((SDL_Renderer *)gui->renderer, &rect);
+}
+
+void gui_renderer_draw_line(gui_renderer_t *gui, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint8_t color) {
+    int32_t ix0 = (int32_t)x0;
+    int32_t iy0 = (int32_t)y0;
+    int32_t ix1 = (int32_t)x1;
+    int32_t iy1 = (int32_t)y1;
+    int32_t dx = (ix1 > ix0) ? (ix1 - ix0) : (ix0 - ix1);
+    int32_t sx = (ix0 < ix1) ? 1 : -1;
+    int32_t dy = (iy1 > iy0) ? (iy0 - iy1) : (iy1 - iy0);
+    int32_t sy = (iy0 < iy1) ? 1 : -1;
+    int32_t err = dx + dy;
+    for(;;) {
+        gui_renderer_draw_pixel(gui, (uint32_t)ix0, (uint32_t)iy0, color);
+        if(ix0 == ix1 && iy0 == iy1) break;
+        int32_t e2 = err << 1;
+        if(e2 >= dy) {
+            err += dy;
+            ix0 += sx;
+        }
+        if(e2 <= dx) {
+            err += dx;
+            iy0 += sy;
+        }
+    }
 }
 
 void gui_renderer_destroy(gui_renderer_t * gui) {

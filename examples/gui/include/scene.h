@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    framebuffer.c
+  * @file    scene.h
   * @author  Ian Wilkey
   * @brief   A framebuffer sent over serial to a reciever application that's capable of
   *          rendering the image in real-time.
@@ -29,19 +29,11 @@
   ******************************************************************************
   */
 
-#include <framebuffer.h>
+#ifndef _FREERTOS_GUI_SCENE_H_
+#define _FREERTOS_GUI_SCENE_H_
 
-static uint8_t TINYRTOS_FRAMEBUFFER[TINYRTOS_FRAMEBUFFER_SIZE];
+#include <stdint.h>
 
-void fb_clear(void) {
-  for(int i = 0; i < TINYRTOS_FRAMEBUFFER_SIZE; i++) TINYRTOS_FRAMEBUFFER[i] = 0x0;
-}
+void scene_render(void);
 
-void fb_set_pixel(uint16_t x, uint16_t y, uint8_t v) {
-  if(x >= TINYRTOS_FRAMEBUFFER_WIDTH || y >= TINYRTOS_FRAMEBUFFER_HEIGHT) return;
-  TINYRTOS_FRAMEBUFFER[y * TINYRTOS_FRAMEBUFFER_WIDTH + x] = v;
-}
-
-uint8_t * fb_get() {
-  return TINYRTOS_FRAMEBUFFER;
-}
+#endif /// _FREERTOS_GUI_SCENE_H_

@@ -32,6 +32,7 @@
 #ifndef _TINYRTOS_GUI_PARSER_H_
 #define _TINYRTOS_GUI_PARSER_H_
 
+#include <renderer.h>
 #include <stdint.h>
 
 typedef enum {
@@ -44,8 +45,8 @@ typedef enum {
     RX_CHECKSUM
 } rx_state_t;
 
-int gui_protocol_feed(uint8_t byte);
+void gui_protocol_set_renderer(gui_renderer_t *gui);
 
-uint8_t * get_fb(void);
+void gui_protocol_feed(uint8_t byte);
 
 #endif /// _TINYRTOS_GUI_PARSER_H_
