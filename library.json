@@ -1,6 +1,6 @@
 {
   "name": "tinyrtos",
-  "version": "2026.5.22+4",
+  "version": "2026.5.27+4",
   "description": "A compact, preemptive priority RTOS kernel for ARM Cortex-M currently targeting stm32f7xx boards.",
   "keywords": [
     "rtos",
