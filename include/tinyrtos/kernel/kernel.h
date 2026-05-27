@@ -37,7 +37,7 @@
 /**
  * Current TinyRTOS version.
  */
-#define RTOSK_KERNEL_VERSION "2026.5.22+3.1"
+#define RTOSK_KERNEL_VERSION "2026.5.22+4"
 
 /**
  * Function handle for a RTOSK task.

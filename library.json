@@ -1,6 +1,6 @@
 {
   "name": "tinyrtos",
-  "version": "2026.5.22+3.1",
+  "version": "2026.5.22+4",
   "description": "A compact, preemptive priority RTOS kernel for ARM Cortex-M currently targeting stm32f7xx boards.",
   "keywords": [
     "rtos",
@@ -58,7 +58,19 @@
         "platformio.ini",
         "src/main.c",
         "src/dispatcher.c",
-        "include/dispatcher.h"
+        "src/primitives.c",
+        "src/scene.c",
+        "include/dispatcher.h",
+        "include/primitives.h",
+        "include/scene.h",
+        "renderer/include/parser.h",
+        "renderer/include/renderer.h",
+        "renderer/include/serial.h",
+        "renderer/src/main.c",
+        "renderer/src/parser.c",
+        "renderer/src/renderer.c",
+        "renderer/src/serial.c",
+        "renderer/CMakeLists.txt"
       ]
     }
   ]
